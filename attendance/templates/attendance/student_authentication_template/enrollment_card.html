@@ -1,0 +1,59 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Enrollment Card{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Enrollment Card</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ student.get_full_name }}</p>
+                            <p><strong>Email:</strong> {{ student.email }}</p>
+                            <p><strong>Department:</strong> {{ student_enrollment.department.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Program:</strong> {{ student_enrollment.program.name }}</p>
+                            <p><strong>Semester:</strong> {{ student_enrollment.semester.name }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5>Enrolled Courses</h5>
+                    {% if enrolled_courses %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th>Credit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for course in enrolled_courses %}
+                                    <tr>
+                                        <td>{{ course.code }}</td>
+                                        <td>{{ course.name }}</td>
+                                        <td>{{ course.credit }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No courses enrolled yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

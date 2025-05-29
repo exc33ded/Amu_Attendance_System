@@ -1,0 +1,24 @@
+{% extends "attendance/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'manage_semesters' %}" class="btn btn-secondary me-3">← Back</a>
+        <h2 class="mb-0">Delete Semester</h2>
+    </div>
+
+    <div class="card p-4 shadow-lg">
+        <div class="alert alert-danger">
+            <h4 class="alert-heading">Warning!</h4>
+            <p>Are you sure you want to delete the semester "{{ semester.name }}"?</p>
+            <p class="mb-0">This action cannot be undone.</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">🗑 Delete Semester</button>
+            <a href="{% url 'manage_semesters' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %} 

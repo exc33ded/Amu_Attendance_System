@@ -1,0 +1,158 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}All Notifications{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <h4 class="mb-0">All Notifications</h4>
+                        {% if unread_count > 0 %}
+                        <span class="badge bg-danger ms-3">{{ unread_count }} Unread</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if unread_count > 0 %}
+                        <a href="?mark_read=true" class="btn btn-light btn-sm">
+                            <i class="fas fa-check-double me-1"></i>Mark All as Read
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications %}
+                        <div class="list-group-item notification-item {% if not notification.is_read %}unread{% endif %}" 
+                             data-notification-id="{{ notification.id }}">
+                            <div class="d-flex">
+                                <div class="notification-icon me-3">
+                                    {% if notification.notification_type == 'appointment' %}
+                                        <i class="fas fa-user-tie"></i>
+                                    {% elif notification.notification_type == 'removal' %}
+                                        <i class="fas fa-user-minus"></i>
+                                    {% elif notification.notification_type == 'request' %}
+                                        <i class="fas fa-clock"></i>
+                                    {% else %}
+                                        <i class="fas fa-bell"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="notification-content flex-grow-1">
+                                    {% if notification.title %}
+                                    <h6 class="mb-1 fw-bold">{{ notification.title }}</h6>
+                                    {% endif %}
+                                    <p class="mb-1">{{ notification.message }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                                        {% if not notification.is_read %}
+                                        <span class="badge bg-primary">New</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No notifications found</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.notification-item {
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left-color: #0d6efd;
+}
+
+.notification-icon {
+    width: 45px;
+    height: 45px;
+    background-color: #e9ecef;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-icon i {
+    font-size: 1.2rem;
+    color: #0d6efd;
+}
+
+.notification-content {
+    min-width: 0;
+}
+
+.notification-content p {
+    margin: 0;
+    color: #495057;
+    font-size: 1rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.notification-content small {
+    color: #6c757d;
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+}
+
+.badge.bg-danger {
+    font-size: 0.875rem;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Mark individual notification as read when clicked
+    $('.notification-item.unread').click(function() {
+        const notificationId = $(this).data('notification-id');
+        const $notification = $(this);
+        
+        $.ajax({
+            url: '/mark-notification-read/',
+            method: 'POST',
+            data: {
+                notification_id: notificationId,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function() {
+                $notification.removeClass('unread');
+                $notification.find('.badge').remove();
+                
+                // Update unread count in header
+                const $unreadCount = $('.badge.bg-danger');
+                const currentCount = parseInt($unreadCount.text());
+                if (currentCount > 1) {
+                    $unreadCount.text(`${currentCount - 1} Unread`);
+                } else {
+                    $unreadCount.parent().remove();
+                    $('.btn-light').remove();
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

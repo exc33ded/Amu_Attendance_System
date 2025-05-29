@@ -1,0 +1,777 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<!-- Top Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container-fluid">
+        <span class="navbar-brand">Student Dashboard</span>
+        <div class="ms-auto d-flex align-items-center">
+            <!-- Notifications Dropdown -->
+            <div class="notifications-bell" id="notificationsBell">
+                <i class="fas fa-bell"></i>
+                {% if unread_notifications_count > 0 %}
+                <span class="badge">{{ unread_notifications_count }}</span>
+                <span class="notification-text">You have {{ unread_notifications_count }} new notification{% if unread_notifications_count > 1 %}s{% endif %}</span>
+                {% endif %}
+                
+                <div class="notifications-dropdown" id="notificationsDropdown">
+                    <div class="dropdown-header">
+                        <h6>
+                            <i class="fas fa-bell me-2"></i>
+                            Notifications
+                        </h6>
+                        {% if unread_notifications_count > 0 %}
+                        <button class="btn btn-link btn-sm p-0" onclick="markAllNotificationsRead()">
+                            <i class="fas fa-check-double me-1"></i>Mark all as read
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div class="notifications-list">
+                        {% for notification in notifications %}
+                        <div class="notification-item {% if not notification.is_read %}unread{% endif %}"
+                            data-notification-id="{{ notification.id }}">
+                            <div class="notification-icon">
+                                {% if notification.notification_type == 'appointment' %}
+                                    <i class="fas fa-user-tie"></i>
+                                {% elif notification.notification_type == 'removal' %}
+                                    <i class="fas fa-user-minus"></i>
+                                {% elif notification.notification_type == 'request' %}
+                                    <i class="fas fa-clock"></i>
+                                {% else %}
+                                    <i class="fas fa-bell"></i>
+                                {% endif %}
+                            </div>
+                            <div class="notification-content">
+                                {% if notification.title %}
+                                <h6 class="mb-1 fw-bold">{{ notification.title }}</h6>
+                                {% endif %}
+                                <p>{{ notification.message }}</p>
+                                <small>{{ notification.created_at|timesince }} ago</small>
+                                {% if not notification.is_read %}
+                                <span class="badge bg-primary">New</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="notification-item">
+                            <div class="notification-content text-center">
+                                <p class="text-muted">No notifications</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="dropdown-footer">
+                        <a href="{% url 'view_all_notifications' %}" class="btn btn-link w-100">View All Notifications</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    {{ request.user.get_full_name }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Toast Notification -->
+{% if unread_notifications_count > 0 %}
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+        <div class="toast-header bg-primary text-white">
+            <i class="fas fa-bell me-2"></i>
+            <strong class="me-auto">New Notification</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            You have {{ unread_notifications_count }} new notification{% if unread_notifications_count > 1 %}s{% endif %}!
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ student.get_full_name }}</p>
+                    <p><strong>Email:</strong> {{ student.email }}</p>
+                    <p><strong>Department:</strong> {{ student_enrollment.department.name }}</p>
+                    <p><strong>Program:</strong> {{ student_enrollment.program.name }}</p>
+                    <p><strong>Semester:</strong> {{ student_enrollment.semester.name }}</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'download_enrollment_card' %}" class="btn btn-info">
+                            <i class="fas fa-download"></i> Enrollment Card
+                        </a>
+                        <a href="{% url 'download_admit_card' %}" class="btn btn-success">
+                            <i class="fas fa-id-card"></i> Admit Card
+                        </a>
+                        <a href="{% url 'student_view_attendance' %}" class="btn btn-primary">
+                            <i class="fas fa-calendar-check"></i> Attendance
+                        </a>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{% url 'student_request_attendance_change' %}" class="btn btn-warning w-100">
+                            <i class="fas fa-edit"></i> Request Attendance Change
+                        </a>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{% url 'request_admit_card' %}" class="btn btn-danger w-100">
+                            <i class="fas fa-file-alt"></i> Request Admit Card
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Course Enrollment</h5>
+                </div>
+                <div class="card-body">
+                    {% if enrolled_courses %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th>Credit</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for course in enrolled_courses %}
+                                    <tr>
+                                        <td>{{ course.code }}</td>
+                                        <td>{{ course.name }}</td>
+                                        <td>{{ course.credit }}</td>
+                                        <td>
+                                            <form method="post" action="{% url 'student_dashboard' %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="course_id" value="{{ course.id }}">
+                                                <button type="submit" name="unenroll_course" class="btn btn-danger btn-sm">Unenroll</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You are not enrolled in any courses yet.</p>
+                    {% endif %}
+
+                    {% if available_courses %}
+                        <hr>
+                        <h6>Available Courses</h6>
+                        <form method="post" action="{% url 'student_dashboard' %}">
+                            {% csrf_token %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Select</th>
+                                            <th>Course Code</th>
+                                            <th>Course Name</th>
+                                            <th>Credit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for course in available_courses %}
+                                        <tr>
+                                            <td>
+                                                <input type="checkbox" name="courses" value="{{ course.id }}">
+                                            </td>
+                                            <td>{{ course.code }}</td>
+                                            <td>{{ course.name }}</td>
+                                            <td>{{ course.credit }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="submit" name="enroll_courses" class="btn btn-primary">Enroll Selected Courses</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AJAX Script for Dynamic Dropdowns -->
+<script>
+    $(document).ready(function() {
+        // Department change handler
+        $('#department').change(function() {
+            var departmentId = $(this).val();
+            if (departmentId) {
+                $.ajax({
+                    url: '/get-programs/',
+                    data: {
+                        'department_id': departmentId
+                    },
+                    success: function(data) {
+                        $('#program').empty().append('<option value="">-- Select Program --</option>');
+                        $.each(data, function(index, item) {
+                            $('#program').append($('<option>', {
+                                value: item.id,
+                                text: item.name
+                            }));
+                        });
+                        $('#program').prop('disabled', false);
+                        $('#semester').prop('disabled', true).empty().append('<option value="">-- Select Semester --</option>');
+                        $('#courses').prop('disabled', true).empty().append('<option value="">-- Select Courses --</option>');
+                    }
+                });
+            } else {
+                $('#program').prop('disabled', true).empty().append('<option value="">-- Select Program --</option>');
+                $('#semester').prop('disabled', true).empty().append('<option value="">-- Select Semester --</option>');
+                $('#courses').prop('disabled', true).empty().append('<option value="">-- Select Courses --</option>');
+            }
+        });
+
+        // Program change handler
+        $('#program').change(function() {
+            var programId = $(this).val();
+            if (programId) {
+                $.ajax({
+                    url: '/get-semesters/',
+                    data: {
+                        'program_id': programId
+                    },
+                    success: function(data) {
+                        $('#semester').empty().append('<option value="">-- Select Semester --</option>');
+                        $.each(data, function(index, item) {
+                            $('#semester').append($('<option>', {
+                                value: item.id,
+                                text: item.name
+                            }));
+                        });
+                        $('#semester').prop('disabled', false);
+                        $('#courses').prop('disabled', true).empty().append('<option value="">-- Select Courses --</option>');
+                    }
+                });
+            } else {
+                $('#semester').prop('disabled', true).empty().append('<option value="">-- Select Semester --</option>');
+                $('#courses').prop('disabled', true).empty().append('<option value="">-- Select Courses --</option>');
+            }
+        });
+
+        // Semester change handler
+        $('#semester').change(function() {
+            var semesterId = $(this).val();
+            if (semesterId) {
+                $.ajax({
+                    url: '/get-courses/',
+                    data: {
+                        'semester_id': semesterId
+                    },
+                    success: function(data) {
+                        $('#courses').empty().append('<option value="">-- Select Courses --</option>');
+                        $.each(data, function(index, item) {
+                            $('#courses').append($('<option>', {
+                                value: item.id,
+                                text: item.name
+                            }));
+                        });
+                        $('#courses').prop('disabled', false);
+                    }
+                });
+            } else {
+                $('#courses').prop('disabled', true).empty().append('<option value="">-- Select Courses --</option>');
+            }
+        });
+    });
+</script>
+
+<!-- Styles -->
+<style>
+/* Navbar Styles */
+.navbar {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    color: #004c3f;
+}
+
+/* Notification Bell Styles */
+.notifications-bell {
+    position: relative;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    z-index: 1050;
+    margin-right: 1rem;
+}
+
+.notifications-bell i {
+    font-size: 20px;
+    color: #004c3f;
+}
+
+.notifications-bell:hover {
+    transform: scale(1.1);
+}
+
+.notifications-bell .badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: #e74a3b;
+    color: white;
+    border-radius: 50%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(231, 74, 59, 0.7);
+    }
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(231, 74, 59, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(231, 74, 59, 0);
+    }
+}
+
+.notifications-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 350px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin-top: 0.5rem;
+    z-index: 1051;
+    display: none;
+    animation: slideDown 0.3s ease;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notifications-dropdown.show {
+    display: block;
+}
+
+/* Add overlay when dropdown is shown */
+.notifications-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+}
+
+.notifications-overlay.show {
+    display: block;
+}
+
+.dropdown-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 15px;
+    border-bottom: 1px solid #e3e6f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+    z-index: 2;
+}
+
+.dropdown-header h6 {
+    margin: 0;
+    color: #004c3f;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-header .btn-link {
+    color: #004c3f;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.dropdown-header .btn-link:hover {
+    color: #003d32;
+}
+
+.notifications-list {
+    max-height: 400px;
+    overflow-y: auto;
+    background: white;
+    position: relative;
+    z-index: 1;
+}
+
+.notification-item {
+    padding: 15px;
+    border-bottom: 1px solid #e3e6f0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: start;
+    gap: 10px;
+    cursor: pointer;
+    background: white;
+    border-left: 4px solid transparent;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left-color: #0d6efd;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #e9ecef;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notification-icon i {
+    color: #0d6efd;
+    font-size: 1.2rem;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-content p {
+    margin: 0;
+    color: #3a3b45;
+    font-size: 0.9rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.notification-content small {
+    color: #858796;
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 4px;
+}
+
+.notification-content .badge {
+    margin-left: 8px;
+    padding: 0.35em 0.65em;
+    font-size: 0.75rem;
+}
+
+.dropdown-footer {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid #e3e6f0;
+    border-radius: 0 0 8px 8px;
+    z-index: 1052;
+}
+
+.dropdown-footer .btn-link {
+    color: #004c3f;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    display: block;
+    width: 100%;
+}
+
+.dropdown-footer .btn-link:hover {
+    color: #003d32;
+    background-color: #f8f9fc;
+}
+
+/* Ensure the button is clickable */
+.notifications-dropdown.show .dropdown-footer .btn-link {
+    pointer-events: auto;
+    position: relative;
+    z-index: 1053;
+}
+
+/* User Dropdown Styles */
+.dropdown-toggle {
+    color: #004c3f;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.dropdown-toggle:hover,
+.dropdown-toggle:focus {
+    color: #003d32;
+}
+
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    color: #3a3b45;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #004c3f;
+}
+
+.view-all-notifications {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    z-index: 1060;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: none;
+}
+
+.notifications-bell:hover + .view-all-notifications,
+.view-all-notifications:hover {
+    display: block;
+}
+
+.notification-text {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #004c3f;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    margin-top: 5px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 1052;
+}
+
+.notifications-bell:hover .notification-text {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+
+<!-- JavaScript -->
+<script>
+// Initialize variables from Django template
+const UNREAD_NOTIFICATIONS_COUNT = parseInt('{{ unread_notifications_count|default:0 }}');
+
+document.addEventListener('DOMContentLoaded', function() {
+    const notificationsBell = document.getElementById('notificationsBell');
+    const notificationsDropdown = document.getElementById('notificationsDropdown');
+    const overlay = document.createElement('div');
+    overlay.className = 'notifications-overlay';
+    document.body.appendChild(overlay);
+    
+    // Add event delegation for notification items
+    const notificationsList = document.querySelector('.notifications-list');
+    if (notificationsList) {
+        notificationsList.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const notificationItem = e.target.closest('.notification-item');
+            if (notificationItem && notificationItem.classList.contains('unread')) {
+                const notificationId = notificationItem.dataset.notificationId;
+                if (notificationId) {
+                    markNotificationRead(notificationId);
+                }
+            }
+        });
+    }
+    
+    // Bell click handler
+    if (notificationsBell) {
+        notificationsBell.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            notificationsDropdown.classList.toggle('show');
+            overlay.classList.toggle('show');
+        });
+    }
+    
+    // Close dropdown when clicking overlay
+    overlay.addEventListener('click', function(e) {
+        e.stopPropagation();
+        notificationsDropdown.classList.remove('show');
+        overlay.classList.remove('show');
+    });
+    
+    // Separate function for closing dropdown
+    const closeDropdown = function(e) {
+        if (!notificationsBell.contains(e.target) && !notificationsDropdown.contains(e.target)) {
+            notificationsDropdown.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+    };
+    
+    // Add the click event listener using the named function
+    document.addEventListener('click', closeDropdown);
+
+    // Show toast notification if there are unread notifications
+    if (UNREAD_NOTIFICATIONS_COUNT > 0) {
+        const toast = new bootstrap.Toast(document.getElementById('notificationToast'));
+        toast.show();
+    }
+});
+
+function markNotificationRead(notificationId) {
+    fetch('/mark-notification-read/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ notification_id: notificationId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update UI to show notification as read
+            const notification = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (notification) {
+                notification.classList.remove('unread');
+                const badge = notification.querySelector('.badge');
+                if (badge) {
+                    badge.remove();
+                }
+            }
+            // Update unread count
+            updateUnreadCount();
+        }
+    });
+}
+
+function markAllNotificationsRead() {
+    fetch('/mark-all-notifications-read/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update UI to show all notifications as read
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+                const badge = item.querySelector('.badge');
+                if (badge) {
+                    badge.remove();
+                }
+            });
+            // Update badge
+            const badge = document.querySelector('.notifications-bell .badge');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+            // Remove mark all as read button
+            const markAllBtn = document.querySelector('.dropdown-header .btn-link');
+            if (markAllBtn) {
+                markAllBtn.style.display = 'none';
+            }
+        }
+    });
+}
+
+function updateUnreadCount() {
+    const badge = document.querySelector('.notifications-bell .badge');
+    const count = document.querySelectorAll('.notification-item.unread').length;
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+            // Hide mark all as read button when no unread notifications
+            const markAllBtn = document.querySelector('.dropdown-header .btn-link');
+            if (markAllBtn) {
+                markAllBtn.style.display = 'none';
+            }
+        }
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+{% endblock %}

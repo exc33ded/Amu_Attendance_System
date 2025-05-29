@@ -1,0 +1,73 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Admit Card</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="mb-3">Student Information</h5>
+                    <p><strong>Name:</strong> {{ student.get_full_name }}</p>
+                    <p><strong>Student ID:</strong> {{ student.student_id }}</p>
+                    <p><strong>Department:</strong> {{ student_enrollment.department.name }}</p>
+                    <p><strong>Program:</strong> {{ student_enrollment.program.name }}</p>
+                    <p><strong>Semester:</strong> {{ student_enrollment.semester.name }}</p>
+                    <p><strong>Overall Attendance:</strong> {{ overall_attendance }}%</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="photo-space mb-3" style="border: 2px dashed #ccc; height: 150px; display: flex; align-items: center; justify-content: center;">
+                        <p class="text-muted mb-0">Photo Space</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h5>Enrolled Courses</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th>Credit</th>
+                                <th>Attendance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in enrolled_courses %}
+                            <tr>
+                                <td>{{ course.code }}</td>
+                                <td>{{ course.name }}</td>
+                                <td>{{ course.credit }}</td>
+                                <td>{{ course.attendance }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="signature-space" style="border-top: 1px solid #000; margin-top: 50px;">
+                        <p class="text-center">Student's Signature</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="signature-space" style="border-top: 1px solid #000; margin-top: 50px;">
+                        <p class="text-center">Controller's Signature</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <p class="text-muted"><small>Note: This admit card is valid only if the student's overall attendance is above 75%.</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

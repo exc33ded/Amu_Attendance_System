@@ -1,0 +1,170 @@
+{% extends 'attendance/dean_authentication_template/dean_base.html' %}
+{% load static %}
+
+{% block title %}Manage Chairpersons{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Assign Department Chairperson</h4>
+        <a href="{% url 'dean_dashboard' %}" class="btn btn-secondary">← Back</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #004c3f;">
+                    <h5 class="mb-0 text-white">Chairperson Assignment Form</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Please select the department and teacher to assign as chairperson.</p>
+
+                    {% if messages %}
+                    <div class="alert alert-info">
+                        {% for message in messages %}
+                        <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" action="{% url 'dean_manage_chairpersons' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">Department</label>
+                                <select class="form-select" id="department" name="department_id" required>
+                                    <option value="" selected disabled>Select Department</option>
+                                    {% for department in departments %}
+                                        <option value="{{ department.id }}">{{ department.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a department.
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="teacher" class="form-label">Teacher</label>
+                                <select class="form-select" id="teacher" name="teacher_id" required disabled>
+                                    <option value="" selected disabled>Select Teacher</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a teacher.
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Assign Chairperson</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Chairpersons -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #004c3f;">
+                    <h4 class="mb-0 text-white">Current Chairpersons</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Teacher</th>
+                                    <th>Department</th>
+                                    <th>Assignment Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for chairperson in chairpersons %}
+                                <tr>
+                                    <td>{{ chairperson.user.get_full_name }}</td>
+                                    <td>{{ chairperson.department.name }}</td>
+                                    <td>{{ chairperson.created_at|date:"d M Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'edit_chairperson' chairperson.id %}" class="btn btn-sm" style="background-color: #004c3f; color: white; margin-right: 5px;">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <a href="{% url 'dean_remove_chairperson' chairperson.id %}" class="btn btn-sm" style="background-color: #dc3545; color: white;">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No chairpersons assigned yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<!-- Add jQuery and Select2 before your custom scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Initialize Select2 for teacher selection
+        $('#teacher').select2({
+            placeholder: "Select a teacher",
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Handle department change
+        $('#department').change(function() {
+            var departmentId = $(this).val();
+            var teacherSelect = $('#teacher');
+            
+            // Reset teacher dropdown
+            teacherSelect.empty().append('<option value="">Select Teacher</option>');
+            teacherSelect.prop('disabled', true);
+            
+            if (departmentId) {
+                // Load teachers for the selected department
+                $.ajax({
+                    url: "{% url 'get_teachers_by_department' %}",
+                    data: { 'department_id': departmentId },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.teachers && data.teachers.length > 0) {
+                            $.each(data.teachers, function(index, teacher) {
+                                teacherSelect.append(
+                                    $('<option></option>')
+                                    .attr('value', teacher.id)
+                                    .text(teacher.name + ' (' + teacher.teacher_code + ') - ' + teacher.email)
+                                );
+                            });
+                            teacherSelect.prop('disabled', false);
+                            // Trigger Select2 to update
+                            teacherSelect.trigger('change');
+                        } else {
+                            teacherSelect.append('<option value="">No teachers available</option>');
+                        }
+                    },
+                    error: function(xhr, errmsg, err) {
+                        console.error('Error fetching teachers:', errmsg);
+                        teacherSelect.append('<option value="">Error loading teachers</option>');
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,228 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Manage Courses{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage Courses</h2>
+        <a href="{% url 'chairperson_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Add Course Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Add New Course</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'chairperson_add_course' %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="program" class="form-label">Program</label>
+                        <select class="form-select" id="program" name="program" required>
+                            <option value="">Select Program</option>
+                            {% for program in programs %}
+                            <option value="{{ program.id }}">{{ program.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="semester" class="form-label">Semester</label>
+                        <select class="form-select" id="semester" name="semester" required disabled>
+                            <option value="">Select Semester</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="course_code" class="form-label">Course Code</label>
+                        <input type="text" class="form-control" id="course_code" name="course_code" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="course_name" class="form-label">Course Name</label>
+                        <input type="text" class="form-control" id="course_name" name="course_name" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="course_credit" class="form-label">Credits</label>
+                        <input type="number" class="form-control" id="course_credit" name="course_credit" min="1" max="6" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Add Course
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Filter Courses</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row" id="filterForm">
+                <div class="col-md-6">
+                    <label for="program_filter" class="form-label">Filter by Program</label>
+                    <select class="form-select" id="program_filter" name="program">
+                        <option value="">All Programs</option>
+                        {% for program in programs %}
+                        <option value="{{ program.id }}" {% if program.id|stringformat:"s" == selected_program %}selected{% endif %}>
+                            {{ program.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="semester_filter" class="form-label">Filter by Semester</label>
+                    <select class="form-select" id="semester_filter" name="semester" {% if not selected_program %}disabled{% endif %}>
+                        <option value="">All Semesters</option>
+                        {% for semester in semesters %}
+                        <option value="{{ semester.id }}" {% if semester.id|stringformat:"s" == selected_semester %}selected{% endif %}>
+                            {{ semester.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Courses List -->
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Existing Courses</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Course Code</th>
+                            <th>Course Name</th>
+                            <th>Program</th>
+                            <th>Semester</th>
+                            <th>Credits</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ course.code }}</td>
+                            <td>{{ course.name }}</td>
+                            <td>{{ course.program.name }}</td>
+                            <td>{{ course.semester.name }}</td>
+                            <td>{{ course.credit }}</td>
+                            <td>
+                                <a href="{% url 'chairperson_edit_course' course.id %}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'chairperson_delete_course' course.id %}" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Are you sure you want to delete this course?');">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No courses found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const programSelect = document.getElementById('program');
+    const semesterSelect = document.getElementById('semester');
+    const programFilterSelect = document.getElementById('program_filter');
+    const semesterFilterSelect = document.getElementById('semester_filter');
+    const filterForm = document.getElementById('filterForm');
+
+    // Function to load semesters for a program
+    function loadSemesters(programId, targetSelect) {
+        if (programId) {
+            fetch(`/ajax/get-semesters-by-program/?program_id=${programId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    targetSelect.innerHTML = '<option value="">All Semesters</option>';
+                    if (data.semesters && data.semesters.length > 0) {
+                        data.semesters.forEach(semester => {
+                            targetSelect.innerHTML += `<option value="${semester.id}">${semester.name}</option>`;
+                        });
+                        targetSelect.disabled = false;
+                    } else {
+                        targetSelect.innerHTML += '<option value="" disabled>No semesters found</option>';
+                        targetSelect.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading semesters:', error);
+                    targetSelect.innerHTML = '<option value="">All Semesters</option>';
+                    targetSelect.disabled = true;
+                });
+        } else {
+            targetSelect.innerHTML = '<option value="">All Semesters</option>';
+            targetSelect.disabled = true;
+        }
+    }
+
+    // Function to submit the filter form
+    function submitFilterForm() {
+        filterForm.submit();
+    }
+
+    // Event listener for add course form
+    programSelect.addEventListener('change', function() {
+        loadSemesters(this.value, semesterSelect);
+    });
+
+    // Event listeners for filter form
+    programFilterSelect.addEventListener('change', function() {
+        loadSemesters(this.value, semesterFilterSelect);
+        submitFilterForm();
+    });
+
+    semesterFilterSelect.addEventListener('change', function() {
+        submitFilterForm();
+    });
+
+    // Initialize semesters if program is selected
+    if (programSelect.value) {
+        loadSemesters(programSelect.value, semesterSelect);
+    }
+    if (programFilterSelect.value) {
+        loadSemesters(programFilterSelect.value, semesterFilterSelect);
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %} 

@@ -1,0 +1,101 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block sidebar %}
+<!-- Sidebar -->
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'dean_dashboard' %}">
+        <div class="sidebar-brand-icon">
+            <i class="fas fa-university"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">Dean Portal</div>
+    </a>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item {% if request.resolver_match.url_name == 'dean_dashboard' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'dean_dashboard' %}">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Academic Management
+    </div>
+
+    <!-- Nav Item - Attendance Summary -->
+    <li class="nav-item {% if request.resolver_match.url_name == 'dean_attendance_summary' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'dean_attendance_summary' %}">
+            <i class="fas fa-fw fa-chart-bar"></i>
+            <span>Attendance Summary</span>
+        </a>
+    </li>
+
+    <!-- Nav Item - Review Requests -->
+    <li class="nav-item {% if request.resolver_match.url_name == 'review_chairperson_request' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'dean_dashboard' %}">
+            <i class="fas fa-fw fa-tasks"></i>
+            <span>Review Requests</span>
+            {% if pending_count %}
+            <span class="badge badge-danger badge-counter">{{ pending_count }}</span>
+            {% endif %}
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Account
+    </div>
+
+    <!-- Nav Item - Profile -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'profile' %}">
+            <i class="fas fa-fw fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </li>
+
+    <!-- Nav Item - Logout -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'logout' %}">
+            <i class="fas fa-fw fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <!-- Sidebar Toggler (Sidebar) -->
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+</ul>
+<!-- End of Sidebar -->
+{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+{% block footer %}
+<!-- Footer -->
+<footer class="sticky-footer bg-white">
+    <div class="container my-auto">
+        <div class="copyright text-center my-auto">
+            <span>Copyright &copy; Your University 2024</span>
+        </div>
+    </div>
+</footer>
+<!-- End of Footer -->
+{% endblock %} 

@@ -1,0 +1,131 @@
+{% extends "attendance/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Edit Student</h2>
+        <a href="{% url 'manage_students' %}" class="btn btn-primary">🏠 Back to Manage Students</a>
+    </div>
+
+    <!-- Success & Error Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card p-4 shadow-lg mt-3">
+        <h5 class="mb-3">Update Student Information</h5>
+        <form method="POST">
+            {% csrf_token %}
+            {% if student %}
+                <input type="hidden" name="student_id" value="{{ student.id }}">
+            {% endif %}
+
+            <!-- Select Department -->
+            <div class="mb-3">
+                <label for="department" class="form-label">Select Department</label>
+                <select class="form-select" id="department" name="department" required>
+                    <option value="">-- Select Department --</option>
+                    {% for department in departments %}
+                        <option value="{{ department.id }}" {% if department.id == student.department.id %}selected{% endif %}>{{ department.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Select Program -->
+            <div class="mb-3">
+                <label for="program" class="form-label">Select Program</label>
+                <select class="form-select" id="program" name="program" required>
+                    <option value="">-- Select Program --</option>
+                    {% for program in programs %}
+                        <option value="{{ program.id }}" {% if program.id == student.program.id %}selected{% endif %}>{{ program.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Select Semester -->
+            <div class="mb-3">
+                <label for="semester" class="form-label">Select Semester</label>
+                <select class="form-select" id="semester" name="semester" required>
+                    <option value="">-- Select Semester --</option>
+                    {% for semester in semesters %}
+                        <option value="{{ semester.id }}" {% if semester.id == student.semester.id %}selected{% endif %}>{{ semester.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Student Name -->
+            <div class="mb-3">
+                <label for="student_name" class="form-label">Student Name</label>
+                <input type="text" class="form-control" id="student_name" name="student_name" value="{{ student.name }}" required>
+            </div>
+
+            <!-- Student Enrollment Number -->
+            <div class="mb-3">
+                <label for="enrollment_no" class="form-label">Enrollment Number</label>
+                <input type="text" class="form-control" id="enrollment_no" name="enrollment_no" value="{{ student.enrollment_no }}" required>
+            </div>
+
+            <!-- Student Roll Number -->
+            <div class="mb-3">
+                <label for="roll_no" class="form-label">Roll Number</label>
+                <input type="text" class="form-control" id="roll_no" name="roll_no" value="{{ student.roll_no }}" required>
+            </div>
+
+            <!-- Session -->
+            <div class="mb-3">
+                <label for="session" class="form-label">Session</label>
+                <input type="text" class="form-control" id="session" name="session" value="{{ student.session }}" required>
+            </div>
+
+            <button type="submit" class="btn btn-success">Update Student</button>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript for Dynamic Filtering of Programs and Semesters -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let departmentSelect = document.getElementById("department");
+    let programSelect = document.getElementById("program");
+    let semesterSelect = document.getElementById("semester");
+
+    // Fetch programs when a department is selected
+    departmentSelect.addEventListener("change", function() {
+        let departmentId = departmentSelect.value;
+        fetch(`/get_programs_by_department/${departmentId}/`)
+            .then(response => response.json())
+            .then(data => {
+                programSelect.innerHTML = "<option value=''>-- Select Program --</option>";
+                data.programs.forEach(program => {
+                    let option = document.createElement("option");
+                    option.value = program.id;
+                    option.textContent = program.name;
+                    programSelect.appendChild(option);
+                });
+            });
+    });
+
+    // Fetch semesters when a program is selected
+    programSelect.addEventListener("change", function() {
+        let programId = programSelect.value;
+        fetch(`/get_semesters_by_program/${programId}/`)
+            .then(response => response.json())
+            .then(data => {
+                semesterSelect.innerHTML = "<option value=''>-- Select Semester --</option>";
+                data.semesters.forEach(semester => {
+                    let option = document.createElement("option");
+                    option.value = semester.id;
+                    option.textContent = semester.name;
+                    semesterSelect.appendChild(option);
+                });
+            });
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Attendance Report - Controller Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <main class="col-md-12 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Attendance Report</h1>
+                <div>
+                    <a href="{% url 'controller_export_attendance_csv' %}?department={{ department.id }}&program={{ program.id }}&semester={{ semester.id }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-file-csv me-1"></i> Export CSV
+                    </a>
+                    <a href="{% url 'controller_export_attendance_pdf' %}?department={{ department.id }}&program={{ program.id }}&semester={{ semester.id }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-file-pdf me-1"></i> Export PDF
+                    </a>
+                </div>
+            </div>
+
+            <!-- Report Header -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Report Details</h5>
+                            <p><strong>Department:</strong> {{ department.name }}</p>
+                            <p><strong>Program:</strong> {{ program.name }}</p>
+                            <p><strong>Semester:</strong> {{ semester.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Date Range</h5>
+                            <p><strong>From:</strong> {{ start_date|date:"d M Y" }}</p>
+                            <p><strong>To:</strong> {{ end_date|date:"d M Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Table -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="attendanceTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center align-middle" style="width: 200px;">Student Name</th>
+                                    {% for course in courses %}
+                                        <th class="text-center align-middle">
+                                            <div>{{ course.name }}</div>
+                                            <small class="text-muted">{{ course.code }}</small>
+                                        </th>
+                                    {% endfor %}
+                                    <th class="text-center align-middle" style="width: 120px;">Total Present</th>
+                                    <th class="text-center align-middle" style="width: 100px;">Overall %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student_data in students %}
+                                <tr>
+                                    <td class="align-middle">{{ student_data.student.name }}</td>
+                                    {% for course in courses %}
+                                        <td class="text-center align-middle">
+                                            {% with course_data=student_data.courses|get_item:course.id %}
+                                                {% if course_data.total > 0 %}
+                                                    <div class="attendance-cell">
+                                                        <span class="{% if course_data.percentage >= 75 %}text-success{% elif course_data.percentage >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                                            {{ course_data.present }}/{{ course_data.total }}
+                                                            ({{ course_data.percentage|floatformat:1 }}%)
+                                                        </span>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                    {% endfor %}
+                                    <td class="text-center align-middle">
+                                        {% if student_data.total_classes > 0 %}
+                                            {{ student_data.total_present }}/{{ student_data.total_classes }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        {% if student_data.total_classes > 0 %}
+                                            <span class="{% if student_data.overall_percentage >= 75 %}text-success{% elif student_data.overall_percentage >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                                {{ student_data.overall_percentage|floatformat:1 }}%
+                                            </span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+.table th, .table td {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.075);
+}
+.text-success {
+    color: #28a745 !important;
+}
+.text-warning {
+    color: #ffc107 !important;
+}
+.text-danger {
+    color: #dc3545 !important;
+}
+.text-muted {
+    color: #6c757d !important;
+}
+.attendance-cell {
+    min-width: 120px;
+}
+</style>
+{% endblock %}
+{% endblock %} 

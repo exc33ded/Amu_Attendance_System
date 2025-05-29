@@ -1,0 +1,68 @@
+{% extends 'attendance/dean_authentication_template/dean_base.html' %}
+{% load static %}
+
+{% block title %}Approve Admit Card Request{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Approve Admit Card Request</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="alert alert-info">
+                        {% for message in messages %}
+                        <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="mb-4">
+                        <h6>Student Information</h6>
+                        <p><strong>Name:</strong> {{ admit_request.student.name }}</p>
+                        <p><strong>Enrollment No:</strong> {{ admit_request.student.enrollment_no }}</p>
+                        <p><strong>Department:</strong> {{ admit_request.student.department.name }}</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6>Request Details</h6>
+                        <p><strong>Reason:</strong> {{ admit_request.get_reason_display }}</p>
+                        <p><strong>Description:</strong> {{ admit_request.description }}</p>
+                        {% if admit_request.proof_document %}
+                        <p>
+                            <strong>Document:</strong>
+                            <a href="{{ admit_request.proof_document.url }}" target="_blank" class="btn btn-sm btn-info">
+                                <i class="fas fa-file-pdf"></i> View Document
+                            </a>
+                        </p>
+                        {% endif %}
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="request_id" value="{{ admit_request.id }}">
+                        <input type="hidden" name="action" value="approve">
+                        <div class="mb-3">
+                            <label for="relaxation_percentage" class="form-label">Attendance Relaxation (%)</label>
+                            <input type="number" class="form-control" id="relaxation_percentage" name="relaxation_percentage" 
+                                   min="0" max="100" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="review_notes" class="form-label">Review Notes</label>
+                            <textarea class="form-control" id="review_notes" name="review_notes" rows="3"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'view_admit_card_requests' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Requests
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Approve Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

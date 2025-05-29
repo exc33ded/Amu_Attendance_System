@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enrollment Slip</title>
+</head>
+<body>
+    <h2>Enrollment Slip</h2>
+    <p><strong>Student Name:</strong> {{ student.get_full_name }}</p>
+    <p><strong>Username:</strong> {{ student.username }}</p>
+    
+    <h3>Enrolled Courses:</h3>
+    <ul>
+        {% for enrollment in enrollments %}
+            <li>{{ enrollment.course.name }} ({{ enrollment.semester.name }})</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

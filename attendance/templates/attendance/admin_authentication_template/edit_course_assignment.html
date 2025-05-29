@@ -1,0 +1,109 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Edit Course Assignment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #004c3f;">
+                    <h4 class="mb-0 text-white">Edit Course Assignment</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Edit the course assignment for {{ assignment.user.get_full_name }}.</p>
+
+                    {% if messages %}
+                    <div class="alert alert-info">
+                        {% for message in messages %}
+                        <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teacher</label>
+                                <input type="text" class="form-control" value="{{ assignment.user.get_full_name }}" disabled>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Department</label>
+                                <input type="text" class="form-control" value="{{ assignment.department.name }}" disabled>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Program</label>
+                                <input type="text" class="form-control" value="{{ assignment.program.name }}" disabled>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Semester</label>
+                                <input type="text" class="form-control" value="{{ assignment.semester.name }}" disabled>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="courses" class="form-label">Courses</label>
+                                <select class="form-select" id="courses" name="courses" multiple required>
+                                    {% for course in all_courses %}
+                                    <option value="{{ course.id }}" {% if course in assignment.course.all %}selected{% endif %}>
+                                        {{ course.name }} ({{ course.code }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select at least one course.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn" style="background-color: #004c3f; color: white;">Update Assignment</button>
+                            <a href="{% url 'assign_teacher' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Select2 CSS and JS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+// Initialize Select2 for multiple course selection
+$(document).ready(function() {
+    $('#courses').select2({
+        placeholder: "Select one or more courses",
+        allowClear: true,
+        width: '100%'
+    });
+});
+
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+</script>
+{% endblock %} 

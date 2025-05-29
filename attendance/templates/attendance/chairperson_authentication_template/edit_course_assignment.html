@@ -1,0 +1,75 @@
+{% extends 'attendance/chairperson_authentication_template/chairperson_base.html' %}
+{% load static %}
+
+{% block title %}Edit Course Assignment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #004c3f;">
+                    <h4 class="mb-0 text-white">Edit Course Assignment</h4>
+                    <a href="{% url 'chairperson_assign_teacher' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-left"></i> Back to Assignments
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Edit course assignment for {{ assignment.user.get_full_name }}</p>
+
+                    {% if messages %}
+                    <div class="alert alert-info">
+                        {% for message in messages %}
+                        <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Teacher</label>
+                                <input type="text" class="form-control" value="{{ assignment.user.get_full_name }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Program</label>
+                                <input type="text" class="form-control" value="{{ assignment.program.name }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Semester</label>
+                                <input type="text" class="form-control" value="{{ assignment.semester.name }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="courses" class="form-label">Courses</label>
+                                <select class="form-select" id="courses" name="courses" multiple required>
+                                    {% for course in available_courses %}
+                                    <option value="{{ course.id }}" {% if course in assignment.course.all %}selected{% endif %}>
+                                        {{ course.name }} ({{ course.code }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select at least one course.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'chairperson_assign_teacher' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn" style="background-color: #004c3f; color: white;">Update Assignment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

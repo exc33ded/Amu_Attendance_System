@@ -1,0 +1,75 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Attendance Report</h4>
+            <div>
+                <a href="{% url 'export_attendance_csv_admin' %}?{{ request.GET.urlencode }}" class="btn btn-success me-2">
+                    <i class="fas fa-file-csv"></i> Download CSV
+                </a>
+                <a href="{% url 'export_attendance_pdf_admin' %}?{{ request.GET.urlencode }}" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <h5>Filter Details:</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Department:</strong> {{ department.name }}</p>
+                        <p><strong>Program:</strong> {{ program.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Semester:</strong> {{ semester.name }}</p>
+                        <p><strong>Date Range:</strong> {{ from_date }} to {{ to_date }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Sr. No.</th>
+                            <th>Student Name</th>
+                            {% for course in courses %}
+                            <th colspan="2" class="text-center">{{ course.code }}<br>Total Classes: {{ course.total_classes }}</th>
+                            {% endfor %}
+                            <th>Total Present<br>Total Classes: {{ total_classes }}</th>
+                            <th>Overall %</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            {% for course in courses %}
+                            <th>Present</th>
+                            <th>%</th>
+                            {% endfor %}
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ student.name }}</td>
+                            {% for course in student.courses %}
+                            <td>{{ course.present_count }}</td>
+                            <td>{{ course.percentage }}%</td>
+                            {% endfor %}
+                            <td>{{ student.total_present }}</td>
+                            <td>{{ student.overall_percentage }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

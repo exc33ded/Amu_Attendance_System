@@ -1,0 +1,392 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Home - AMU Attendance Management System{% endblock %}
+
+{% block content %}
+
+
+
+<!-- Hero Section -->
+<section class="hero-section position-relative">
+    <div class="hero-overlay"></div>
+    <div class="container position-relative">
+        <div class="row min-vh-100 align-items-center">
+            <div class="col-lg-7">
+                <div class="hero-content">
+                    <h1 class="display-4 fw-bold text-white mb-4">AMU Attendance Management System</h1>
+                    <p class="lead text-white mb-4">Empowering academic excellence through intelligent attendance tracking and management solutions.</p>
+                    <p class="text-white mb-4">A comprehensive platform designed to streamline attendance management, enhance academic monitoring, and improve student engagement across all departments.</p>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="hero-image">
+                    <img src="{% static 'attendance/images/amu_campus.jpg' %}" alt="AMU Campus" class="img-fluid rounded-4 shadow-lg">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Advanced Features</h2>
+            <p class="lead text-muted">Experience the future of academic management</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h3>Real-time Tracking</h3>
+                    <p>Instant attendance recording and monitoring with advanced biometric integration.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h3>Analytics Dashboard</h3>
+                    <p>Comprehensive insights and reports for informed decision-making.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3>Secure Platform</h3>
+                    <p>Enterprise-grade security with multi-factor authentication.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- University Highlights -->
+<section class="university-highlights py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <div class="highlight-image">
+                    <img src="{% static 'attendance/images/amu_library.jpg' %}" alt="AMU Library" class="img-fluid rounded-4 shadow-lg">
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold mb-4">Why Choose AMU?</h2>
+                <div class="highlight-item mb-4">
+                    <div class="highlight-icon">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <div class="highlight-content">
+                        <h4>Academic Excellence</h4>
+                        <p>Consistently ranked among India's top universities with world-class faculty and research facilities.</p>
+                    </div>
+                </div>
+                <div class="highlight-item mb-4">
+                    <div class="highlight-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="highlight-content">
+                        <h4>Modern Infrastructure</h4>
+                        <p>State-of-the-art facilities including smart classrooms and advanced laboratories.</p>
+                    </div>
+                </div>
+                <div class="highlight-item">
+                    <div class="highlight-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="highlight-content">
+                        <h4>Diverse Community</h4>
+                        <p>A vibrant multicultural environment fostering global perspectives and collaboration.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Academic Programs -->
+<section class="academic-programs py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Academic Programs</h2>
+            <p class="lead text-muted">Explore our diverse range of academic offerings</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="bi bi-mortarboard"></i>
+                    </div>
+                    <h3>Undergraduate</h3>
+                    <p>Bachelor's programs in various disciplines with modern curriculum and research opportunities.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="bi bi-book"></i>
+                    </div>
+                    <h3>Postgraduate</h3>
+                    <p>Master's and doctoral programs with specialized research facilities and expert guidance.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <h3>Professional</h3>
+                    <p>Industry-aligned courses and certifications for career advancement and skill development.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Campus Life -->
+<section class="campus-life py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Campus Life</h2>
+            <p class="lead text-muted">Experience the vibrant AMU community</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="campus-card">
+                    <img src="{% static 'attendance/images/student_activities.jpg' %}" alt="Student Activities" class="img-fluid rounded-4">
+                    <h3>Student Activities</h3>
+                    <p>Engage in various clubs, societies, and cultural events throughout the year.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="campus-card">
+                    <img src="{% static 'attendance/images/sports_facilities.jpg' %}" alt="Sports Facilities" class="img-fluid rounded-4">
+                    <h3>Sports Facilities</h3>
+                    <p>State-of-the-art sports complex and various athletic programs for all students.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="campus-card">
+                    <img src="{% static 'attendance/images/library_resources.jpg' %}" alt="Library Resources" class="img-fluid rounded-4">
+                    <h3>Library Resources</h3>
+                    <p>Extensive collection of books, journals, and digital resources for academic excellence.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                url('{% static "attendance/images/amu_campus.jpg" %}');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    padding: 4rem 0;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-image {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-image img {
+    transform: perspective(1000px) rotateY(-10deg);
+    transition: var(--transition);
+    max-height: 400px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.hero-image:hover img {
+    transform: perspective(1000px) rotateY(0deg);
+}
+
+.feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    text-align: center;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 1.75rem;
+}
+
+.highlight-item {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.highlight-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.highlight-content h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.highlight-image img {
+    max-height: 400px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.program-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    text-align: center;
+    height: 100%;
+}
+
+.program-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.program-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 1.75rem;
+}
+
+.campus-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.campus-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.campus-card img {
+    margin-bottom: 1rem;
+    transition: var(--transition);
+    max-height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.campus-card:hover img {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: auto;
+        padding: 4rem 0;
+    }
+    
+    .hero-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .highlight-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .highlight-icon {
+        margin: 0 auto;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Course Students{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ course.name }} ({{ course.code }}) - Students</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="alert alert-info">
+                        {% for message in messages %}
+                        <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <a href="{% url 'mark_attendance' course.id %}" class="btn btn-success">
+                            <i class="fas fa-check-circle"></i> Mark Attendance
+                        </a>
+                        <a href="{% url 'export_attendance_csv' course.id %}" class="btn btn-info">
+                            <i class="fas fa-file-csv"></i> Export as CSV
+                        </a>
+                        <a href="{% url 'export_attendance_pdf' course.id %}" class="btn btn-danger">
+                            <i class="fas fa-file-pdf"></i> Download PDF
+                        </a>
+                        <a href="{% url 'view_attendance' course.id %}" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> View Attendance
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in enrolled_students %}
+                                <tr>
+                                    <td>{{ student.user.get_full_name }}</td>
+                                    <td>
+                                        <select class="form-select" name="status_{{ student.id }}">
+                                            <option value="Present">Present</option>
+                                            <option value="Absent">Absent</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">No students enrolled in this course.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

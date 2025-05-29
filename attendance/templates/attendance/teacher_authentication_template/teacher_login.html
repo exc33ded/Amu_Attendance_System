@@ -1,0 +1,48 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Teacher Login{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #004c3f;">
+                    <h4 class="mb-0 text-white">Teacher Login</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Please enter your <strong>username</strong> and <strong>password</strong> in the fields below to log in to your teacher dashboard. If you don't have an account, please <strong><a href="{% url 'register_teacher' %}">register here</a></strong>.</p>
+
+                    {% if messages %}
+                    <div class="alert alert-info">
+                        {% for message in messages %}
+                        <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn" style="background-color: #004c3f; color: white;">Login</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <p>Don't have an account? <a href="{% url 'register_teacher' %}">Register here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

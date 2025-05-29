@@ -1,0 +1,579 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<!-- Top Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container-fluid">
+        <span class="navbar-brand">Teacher Dashboard</span>
+        <div class="ms-auto d-flex align-items-center">
+            <!-- Notifications Dropdown -->
+            <div class="notifications-bell" id="notificationsBell">
+                <i class="fas fa-bell"></i>
+                {% if unread_notifications_count > 0 %}
+                <span class="badge">{{ unread_notifications_count }}</span>
+                <span class="notification-text">You have {{ unread_notifications_count }} new notification{% if unread_notifications_count > 1 %}s{% endif %}</span>
+                {% endif %}
+                
+                <div class="notifications-dropdown" id="notificationsDropdown">
+                    <div class="dropdown-header">
+                        <h6>
+                            <i class="fas fa-bell me-2"></i>
+                            Notifications
+                        </h6>
+                        {% if unread_notifications_count > 0 %}
+                        <button class="btn btn-link btn-sm p-0" onclick="markAllNotificationsRead()">
+                            Mark all as read
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div class="notifications-list">
+                        {% for notification in notifications %}
+                        <div class="notification-item {% if not notification.is_read %}unread{% endif %}"
+                            data-notification-id="{{ notification.id }}">
+                            <div class="notification-icon">
+                                <i class="fas fa-info"></i>
+                            </div>
+                            <div class="notification-content">
+                                <p>{{ notification.message }}</p>
+                                <small>{{ notification.created_at|timesince }} ago</small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="notification-item">
+                            <div class="notification-content text-center">
+                                <p>No notifications</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="dropdown-footer">
+                        <a href="{% url 'view_all_notifications' %}">View All Notifications</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    {{ request.user.get_full_name }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Toast Notification -->
+{% if unread_notifications_count > 0 %}
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+        <div class="toast-header bg-primary text-white">
+            <i class="fas fa-bell me-2"></i>
+            <strong class="me-auto">New Notification</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            You have {{ unread_notifications_count }} new notification{% if unread_notifications_count > 1 %}s{% endif %}!
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <!-- Welcome Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Welcome, {{ request.user.get_full_name }}</h4>
+            <p class="text-muted mb-0">Manage your courses and attendance</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-book fa-3x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-0">Total Courses</h6>
+                            <h2 class="mb-0">{{ total_courses }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Assignments -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+                <h5 class="mb-0">My Courses</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Course</th>
+                            <th>Program</th>
+                            <th>Semester</th>
+                            <th>Students</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assignment in course_assignments %}
+                        {% for course in assignment.course.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">{{ course.code }}</span>
+                                    <span>{{ course.name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ assignment.program.name }}</td>
+                            <td>{{ assignment.semester.name }}</td>
+                            <td>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-users me-1"></i>{{ course.enrollstudent_set.count }}
+                                    </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'mark_attendance' course.id %}" class="btn btn-sm btn-outline-primary" title="Mark Attendance">
+                                        <i class="fas fa-check me-1"></i>Mark
+                                    </a>
+                                    <a href="{% url 'view_attendance' course.id %}" class="btn btn-sm btn-outline-info" title="View Attendance">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                    <a href="{% url 'view_course_students' course.id %}" class="btn btn-sm btn-outline-success" title="View Students">
+                                        <i class="fas fa-users me-1"></i>Students
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No courses assigned yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Attendance Change Requests -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Student Attendance Change Requests</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in attendance_change_requests %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ request.student.name }}</td>
+                            <td>{{ request.course.name }}</td>
+                            <td>{{ request.reason }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'approve_attendance_change' request.id %}" class="btn btn-sm btn-outline-success" title="Approve">
+                                        <i class="fas fa-check me-1"></i>Approve
+                                    </a>
+                                    <a href="{% url 'reject_attendance_change' request.id %}" class="btn btn-sm btn-outline-danger" title="Reject">
+                                        <i class="fas fa-times me-1"></i>Reject
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No attendance change requests.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+/* Notification Bell Styles */
+.notifications-bell {
+    position: relative;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    z-index: 1050; /* Ensure bell is above other elements */
+}
+
+.notifications-bell i {
+    font-size: 24px;
+    color: #004c3f;
+}
+
+.notifications-bell:hover {
+    transform: scale(1.1);
+}
+
+.notifications-bell .badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #e74a3b;
+    color: white;
+    border-radius: 50%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(231, 74, 59, 0.7);
+    }
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(231, 74, 59, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(231, 74, 59, 0);
+    }
+}
+
+.notifications-dropdown {
+    position: fixed; /* Change to fixed position */
+    top: 60px; /* Adjust based on your navbar height */
+    right: 20px;
+    width: 350px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    margin-top: 5px;
+    z-index: 1051; /* Higher than the bell to ensure dropdown is on top */
+    display: none;
+    animation: slideDown 0.3s ease;
+    max-height: calc(100vh - 80px); /* Prevent overflow */
+    overflow-y: auto;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notifications-dropdown.show {
+    display: block;
+}
+
+/* Add overlay when dropdown is shown */
+.notifications-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+}
+
+.notifications-overlay.show {
+    display: block;
+}
+
+.dropdown-header {
+    position: sticky; /* Keep header visible when scrolling */
+    top: 0;
+    background: white;
+    padding: 15px;
+    border-bottom: 1px solid #e3e6f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+    z-index: 1;
+}
+
+.dropdown-header h6 {
+    margin: 0;
+    color: #004c3f;
+    font-weight: 600;
+}
+
+.notifications-list {
+    max-height: 400px; /* Increased max height */
+    overflow-y: auto;
+    background: white;
+    border-radius: 0 0 8px 8px;
+}
+
+.notification-item {
+    padding: 15px;
+    border-bottom: 1px solid #e3e6f0;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: start;
+    gap: 10px;
+    cursor: pointer;
+    background: white; /* Ensure background is solid */
+}
+
+.notification-item:hover {
+    background-color: #f8f9fc;
+}
+
+.notification-item.unread {
+    background-color: #edf7ff;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #004c3f;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-icon i {
+    color: white;
+    font-size: 1.2rem;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-content p {
+    margin: 0;
+    color: #3a3b45;
+    font-size: 0.9rem;
+}
+
+.notification-content small {
+    color: #858796;
+    font-size: 0.8rem;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-footer {
+    position: sticky; /* Keep footer visible when scrolling */
+    bottom: 0;
+    background: white;
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid #e3e6f0;
+    border-radius: 0 0 8px 8px;
+    z-index: 1;
+}
+
+.dropdown-footer a {
+    color: #004c3f;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.dropdown-footer a:hover {
+    color: #003d32;
+}
+
+.notification-text {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #004c3f;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    margin-top: 5px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 1052;
+}
+
+.notifications-bell:hover .notification-text {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const notificationsBell = document.getElementById('notificationsBell');
+    const notificationsDropdown = document.getElementById('notificationsDropdown');
+    
+    // Create and append overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'notifications-overlay';
+    document.body.appendChild(overlay);
+    
+    // Add event delegation for notification items
+    document.querySelector('.notifications-list').addEventListener('click', function(e) {
+        const notificationItem = e.target.closest('.notification-item');
+        if (notificationItem) {
+            const notificationId = notificationItem.dataset.notificationId;
+            if (notificationId) {
+                markNotificationRead(notificationId);
+            }
+        }
+    });
+    
+    notificationsBell.addEventListener('click', function(e) {
+        e.stopPropagation();
+        notificationsDropdown.classList.toggle('show');
+        overlay.classList.toggle('show');
+    });
+    
+    // Close dropdown when clicking overlay
+    overlay.addEventListener('click', function() {
+        notificationsDropdown.classList.remove('show');
+        overlay.classList.remove('show');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!notificationsBell.contains(e.target) && !notificationsDropdown.contains(e.target)) {
+            notificationsDropdown.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+    });
+    
+    // Show toast notification if there are unread notifications
+    {% if unread_notifications_count > 0 %}
+    const toast = new bootstrap.Toast(document.getElementById('notificationToast'));
+    toast.show();
+    {% endif %}
+});
+
+function markNotificationRead(notificationId) {
+    fetch('/mark-notification-read/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ notification_id: notificationId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update UI to show notification as read
+            const notification = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (notification) {
+                notification.classList.remove('unread');
+            }
+            // Update unread count
+            updateUnreadCount();
+        }
+    });
+}
+
+function markAllNotificationsRead() {
+    fetch('/mark-all-notifications-read/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update UI to show all notifications as read
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+            });
+            // Update badge
+            const badge = document.querySelector('.notifications-bell .badge');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+        }
+    });
+}
+
+function updateUnreadCount() {
+    const badge = document.querySelector('.notifications-bell .badge');
+    const count = document.querySelectorAll('.notification-item.unread').length;
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

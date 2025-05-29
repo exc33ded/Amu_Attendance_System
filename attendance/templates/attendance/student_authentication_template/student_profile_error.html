@@ -1,0 +1,9 @@
+{% extends 'attendance/base.html' %}
+
+{% block content %}
+  <div class="alert alert-danger">
+    <h4 class="alert-heading">Profile Error</h4>
+    <p>Your student profile is missing. Please contact the admin to complete your registration.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">Go to Home</a>
+  </div>
+{% endblock %}

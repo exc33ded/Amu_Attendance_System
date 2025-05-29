@@ -1,0 +1,257 @@
+{% extends 'attendance/dean_authentication_template/dean_base.html' %}
+{% load static %}
+
+{% block title %}Dean Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dean Dashboard</h1>
+        <div>
+            <a href="{% url 'unified_login' %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-sign-out-alt fa-sm text-white-50"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Attendance Summary Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <a href="{% url 'dean_attendance_summary' %}" class="text-decoration-none">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Attendance Summary</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">View Reports</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-chart-bar fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Total Departments Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Departments</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ departments.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Chairpersons Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <a href="{% url 'dean_manage_chairpersons' %}" class="text-decoration-none">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Manage Chairpersons</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">Assign & Manage</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users-cog fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admit Card Management Section -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Admit Card Eligibility</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_admit_card_eligibility">
+                        <div class="mb-3">
+                            <label for="eligibility_percentage" class="form-label">Required Attendance Percentage</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="eligibility_percentage" name="eligibility_percentage" 
+                                       value="{{ admit_card_eligibility.percentage|default:75 }}" min="0" max="100" step="0.01" required>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Eligibility</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Admit Card Requests</h5>
+                </div>
+                <div class="card-body">
+                    <p>Manage student requests for admit card eligibility relaxation.</p>
+                    <a href="{% url 'view_admit_card_requests' %}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> View Requests
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Chairperson Management Card -->
+        <div class="col-xl-12 col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Manage Chairpersons</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="chairpersonsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Chairperson</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for department in departments %}
+                                <tr>
+                                    <td>{{ department.name }}</td>
+                                    <td>
+                                        {% for chairperson in department.chairperson_set.all %}
+                                            {% if chairperson.is_approved %}
+                                                {{ chairperson.user.get_full_name }}
+                                            {% else %}
+                                                <span class="text-muted">Not Assigned</span>
+                                            {% endif %}
+                                        {% empty %}
+                                            <span class="text-muted">Not Assigned</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% for chairperson in department.chairperson_set.all %}
+                                            {% if chairperson.is_approved %}
+                                                <span class="badge badge-success text-white" style="background-color: #28a745; font-weight: bold;">Active</span>
+                                            {% else %}
+                                                <span class="badge badge-warning text-white" style="background-color: #ffc107; font-weight: bold;">Pending</span>
+                                            {% endif %}
+                                        {% empty %}
+                                            <span class="badge badge-secondary text-white" style="background-color: #6c757d; font-weight: bold;">No Chairperson</span>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables CSS -->
+<link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+<!-- DataTables JavaScript -->
+<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<!-- Add jQuery and Select2 before your custom scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#chairpersonsTable').DataTable();
+    
+    // Handle admit card eligibility form submission
+    $('form').on('submit', function(e) {
+        var percentage = $('#eligibility_percentage').val();
+        if (percentage < 0 || percentage > 100) {
+            e.preventDefault();
+            alert('Percentage must be between 0 and 100');
+            return false;
+        }
+    });
+
+    // Initialize Select2 for teacher selection
+    $('#teacher').select2({
+        placeholder: "Select a teacher",
+        allowClear: true,
+        width: '100%'
+    });
+    // Handle department change
+    $('#department').change(function() {
+        var departmentId = $(this).val();
+        var teacherSelect = $('#teacher');
+        // Reset teacher dropdown
+        teacherSelect.empty().append('<option value="">Select Teacher</option>');
+        teacherSelect.prop('disabled', true);
+        if (departmentId) {
+            // Load teachers for the selected department
+            $.ajax({
+                url: "{% url 'get_teachers_by_department' %}",
+                data: { 'department_id': departmentId },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.teachers && data.teachers.length > 0) {
+                        $.each(data.teachers, function(index, teacher) {
+                            teacherSelect.append(
+                                $('<option></option>')
+                                .attr('value', teacher.id)
+                                .text(teacher.name + ' (' + teacher.teacher_code + ') - ' + teacher.email)
+                            );
+                        });
+                        teacherSelect.prop('disabled', false);
+                        // Trigger Select2 to update
+                        teacherSelect.trigger('change');
+                    } else {
+                        teacherSelect.append('<option value="">No teachers available</option>');
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error('Error fetching teachers:', errmsg);
+                    teacherSelect.append('<option value="">Error loading teachers</option>');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

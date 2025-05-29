@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .filter-info {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 8pt;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Attendance Report</h2>
+    </div>
+
+    <div class="filter-info">
+        <h3>Filter Information</h3>
+        <p><strong>Department:</strong> {{ filter_info.department }}</p>
+        <p><strong>Program:</strong> {{ filter_info.program }}</p>
+        <p><strong>Semester:</strong> {{ filter_info.semester }}</p>
+        <p><strong>Date Range:</strong> {{ filter_info.date_range }}</p>
+        <p><strong>Selected Courses:</strong> {{ filter_info.selected_courses }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Sr. No.</th>
+                <th>Student Name</th>
+                {% for course in courses %}
+                    <th colspan="2" class="text-center">{{ course.code }}<br>Total Classes: {{ course_total_classes|get_item:course.id }}</th>
+                {% endfor %}
+                <th>Total Present<br>Total Classes: {{ total_classes }}</th>
+                <th>Overall %</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
+                {% for course in courses %}
+                    <th>Present</th>
+                    <th>%</th>
+                {% endfor %}
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ student.name }}</td>
+                    {% for course in student.courses %}
+                        <td>{{ course.present_count }}</td>
+                        <td>{{ course.percentage }}%</td>
+                    {% endfor %}
+                    <td>{{ student.total_present }}</td>
+                    <td>{{ student.overall_percentage }}%</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="{% widthratio courses|length 1 2|add:3 %}" class="text-center">No attendance records found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Generated on: {% now "F j, Y, g:i a" %}</p>
+    </div>
+</body>
+</html> 

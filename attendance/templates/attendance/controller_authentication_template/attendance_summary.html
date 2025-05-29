@@ -1,0 +1,252 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Attendance Summary{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Attendance Summary</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Form -->
+                    <form method="GET" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="department">Department</label>
+                                    <select name="department" id="department" class="form-control" required>
+                                        <option value="">Select Department</option>
+                                        {% for dept in departments %}
+                                        <option value="{{ dept.id }}" {% if selected_department == dept.id|stringformat:"i" %}selected{% endif %}>{{ dept.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="program">Program</label>
+                                    <select name="program" id="program" class="form-control" required {% if not programs %}disabled{% endif %}>
+                                        <option value="">Select Program</option>
+                                        {% for prog in programs %}
+                                        <option value="{{ prog.id }}" {% if selected_program == prog.id|stringformat:"i" %}selected{% endif %}>{{ prog.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="semester">Semester</label>
+                                    <select name="semester" id="semester" class="form-control" required {% if not semesters %}disabled{% endif %}>
+                                        <option value="">Select Semester</option>
+                                        {% for sem in semesters %}
+                                        <option value="{{ sem.id }}" {% if selected_semester == sem.id|stringformat:"i" %}selected{% endif %}>{{ sem.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="from_date">From Date</label>
+                                    <input type="date" name="from_date" id="from_date" class="form-control" value="{{ from_date }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="to_date">To Date</label>
+                                    <input type="date" name="to_date" id="to_date" class="form-control" value="{{ to_date }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">Generate Report</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    {% if has_data %}
+                    <!-- Export Buttons -->
+                    <div class="mb-3">
+                        <a href="{% url 'controller_export_attendance_csv' %}?department={{ department.id }}&program={{ program.id }}&semester={{ semester.id }}&from_date={{ from_date }}&to_date={{ to_date }}" class="btn btn-success">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </a>
+                        <a href="{% url 'controller_export_attendance_pdf' %}?department={{ department.id }}&program={{ program.id }}&semester={{ semester.id }}&from_date={{ from_date }}&to_date={{ to_date }}" class="btn btn-danger">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </a>
+                    </div>
+
+                    <!-- Report Details -->
+                    <div class="alert alert-info">
+                        <strong>Department:</strong> {{ department.name }} |
+                        <strong>Program:</strong> {{ program.name }} |
+                        <strong>Semester:</strong> {{ semester.name }} |
+                        <strong>Date Range:</strong> {{ from_date }} to {{ to_date }}
+                    </div>
+
+                    <!-- Attendance Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Student Name</th>
+                                    {% for course in courses %}
+                                    <th colspan="2" class="text-center">
+                                        {{ course.code }}<br>
+                                        <small class="text-muted">Total Classes: {{ course.total_classes }}</small>
+                                    </th>
+                                    {% endfor %}
+                                    <th colspan="2" class="text-center">Overall<br><small class="text-muted">Total Classes: {{ total_classes }}</small></th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    {% for course in courses %}
+                                    <th class="text-center">Present</th>
+                                    <th class="text-center">%</th>
+                                    {% endfor %}
+                                    <th class="text-center">Total</th>
+                                    <th class="text-center">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.name }}</td>
+                                    {% for course in student.courses %}
+                                    <td class="text-center">{{ course.present_count }}</td>
+                                    <td class="text-center {% if course.percentage >= 75 %}text-success{% elif course.percentage >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                        {{ course.percentage|floatformat:1 }}%
+                                    </td>
+                                    {% endfor %}
+                                    <td class="text-center">{{ student.total_present }}</td>
+                                    <td class="text-center {% if student.overall_percentage >= 75 %}text-success{% elif student.overall_percentage >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                        {{ student.overall_percentage|floatformat:1 }}%
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table th {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.table td {
+    vertical-align: middle;
+}
+.text-success {
+    color: #28a745 !important;
+}
+.text-warning {
+    color: #ffc107 !important;
+}
+.text-danger {
+    color: #dc3545 !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const departmentSelect = document.getElementById('department');
+    const programSelect = document.getElementById('program');
+    const semesterSelect = document.getElementById('semester');
+
+    // Function to reset and disable a select element
+    function resetSelect(select) {
+        select.innerHTML = '<option value="">Select ' + select.name.charAt(0).toUpperCase() + select.name.slice(1) + '</option>';
+        select.disabled = true;
+    }
+
+    // Function to populate a select element
+    function populateSelect(select, data) {
+        select.disabled = false;
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.name;
+            select.appendChild(option);
+        });
+    }
+
+    // Department change handler
+    departmentSelect.addEventListener('change', function() {
+        resetSelect(programSelect);
+        resetSelect(semesterSelect);
+        
+        if (this.value) {
+            fetch(`/controller/get-programs-by-department/${this.value}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        populateSelect(programSelect, data);
+                    } else {
+                        console.error('Invalid data format received');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resetSelect(programSelect);
+                });
+        }
+    });
+
+    // Program change handler
+    programSelect.addEventListener('change', function() {
+        resetSelect(semesterSelect);
+        
+        if (this.value) {
+            fetch(`/controller/get-semesters-by-program/${this.value}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        populateSelect(semesterSelect, data);
+                    } else {
+                        console.error('Invalid data format received');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resetSelect(semesterSelect);
+                });
+        }
+    });
+
+    // Initialize dropdowns if values are pre-selected
+    if (departmentSelect.value) {
+        const event = new Event('change');
+        departmentSelect.dispatchEvent(event);
+        
+        // If program is pre-selected, wait for programs to load then trigger program change
+        if (programSelect.value) {
+            setTimeout(() => {
+                const programEvent = new Event('change');
+                programSelect.dispatchEvent(programEvent);
+            }, 500);
+        }
+    }
+});
+</script>
+{% endblock %} 

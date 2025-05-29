@@ -1,0 +1,295 @@
+{% extends 'attendance/fundamental_template/base.html' %}
+{% load static %}
+
+{% block title %}Student Registration{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Student Registration</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                <div class="invalid-feedback">Please enter your first name.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                <div class="invalid-feedback">Please enter your last name.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="invalid-feedback">Please enter a valid email address.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="enrollment_no" class="form-label">Enrollment Number</label>
+                                <input type="text" class="form-control" id="enrollment_no" name="enrollment_no" required>
+                                <div class="invalid-feedback">Please enter your enrollment number.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="roll_no" class="form-label">Roll Number</label>
+                                <input type="text" class="form-control" id="roll_no" name="roll_no" required>
+                                <div class="invalid-feedback">Please enter your roll number.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="invalid-feedback">Please enter a password.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="confirm_password" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                <div class="invalid-feedback">Please confirm your password.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">Department</label>
+                                <select class="form-select" id="department" name="department" required>
+                                    <option value="">Select Department</option>
+                                    {% for dept in departments %}
+                                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a department.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="program" class="form-label">Program</label>
+                                <select class="form-select" id="program" name="program" required disabled>
+                                    <option value="">Select Program</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a program.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="semester" class="form-label">Semester</label>
+                                <select class="form-select" id="semester" name="semester" required disabled>
+                                    <option value="">Select Semester</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a semester.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="session" class="form-label">Session</label>
+                                <input type="text" class="form-control" id="session" name="session" placeholder="e.g., 2023-24" required>
+                                <div class="invalid-feedback">Please enter the session.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="{% url 'unified_login' %}">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.15);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    padding: 12px 30px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+}
+
+.text-primary {
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.text-primary:hover {
+    color: var(--secondary-color) !important;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #333;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.alert-success {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+
+.form-text {
+    color: #666;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const departmentSelect = document.getElementById('department');
+    const programSelect = document.getElementById('program');
+    const semesterSelect = document.getElementById('semester');
+
+    // Department change handler
+    departmentSelect.addEventListener('change', function() {
+        const departmentId = this.value;
+        console.log('Department selected:', departmentId);
+
+        if (departmentId) {
+            // Enable program select
+            programSelect.disabled = false;
+            
+            // Show loading state
+            programSelect.innerHTML = '<option value="">Loading programs...</option>';
+            
+            // Fetch programs for selected department
+            fetch(`/get-programs/?department_id=${departmentId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Programs received:', data);
+                    programSelect.innerHTML = '<option value="">Select Program</option>';
+                    if (Array.isArray(data)) {
+                        data.forEach(program => {
+                            programSelect.innerHTML += `<option value="${program.id}">${program.name}</option>`;
+                        });
+                    } else {
+                        programSelect.innerHTML = '<option value="">No programs found</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching programs:', error);
+                    programSelect.innerHTML = '<option value="">Error loading programs</option>';
+                });
+        } else {
+            programSelect.disabled = true;
+            programSelect.innerHTML = '<option value="">Select Program</option>';
+            semesterSelect.disabled = true;
+            semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+        }
+    });
+
+    // Program change handler
+    programSelect.addEventListener('change', function() {
+        const programId = this.value;
+        console.log('Program selected:', programId);
+
+        if (programId) {
+            // Enable semester select
+            semesterSelect.disabled = false;
+            
+            // Show loading state
+            semesterSelect.innerHTML = '<option value="">Loading semesters...</option>';
+            
+            // Fetch semesters for selected program
+            fetch(`/get-semesters/?program_id=${programId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Semesters received:', data);
+                    semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+                    if (Array.isArray(data)) {
+                        data.forEach(semester => {
+                            semesterSelect.innerHTML += `<option value="${semester.id}">${semester.name}</option>`;
+                        });
+                    } else {
+                        semesterSelect.innerHTML = '<option value="">No semesters found</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching semesters:', error);
+                    semesterSelect.innerHTML = '<option value="">Error loading semesters</option>';
+                });
+        } else {
+            semesterSelect.disabled = true;
+            semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+        }
+    });
+
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %} 

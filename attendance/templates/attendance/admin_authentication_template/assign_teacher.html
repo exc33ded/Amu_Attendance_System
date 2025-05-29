@@ -1,0 +1,237 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Assign Teacher{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Assign Teacher to Course</h2>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Back</a>
+    </div>
+
+    <!-- Success & Error Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+                        {% endfor %}
+                    {% endif %}
+
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Assign Teacher</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'assign_teacher' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="department">Department</label>
+                            <select name="department" id="department" class="form-control" required>
+                                <option value="">Select Department</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                </div>
+                            </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="program">Program</label>
+                            <select name="program" id="program" class="form-control" required disabled>
+                                <option value="">Select Department First</option>
+                                </select>
+                        </div>
+                                </div>
+                            </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="semester">Semester</label>
+                            <select name="semester" id="semester" class="form-control" required disabled>
+                                <option value="">Select Program First</option>
+                                </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="course">Course</label>
+                            <select name="course" id="course" class="form-control" required disabled>
+                                <option value="">Select Semester First</option>
+                                </select>
+        </div>
+    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="teacher">Teacher</label>
+                            <select name="teacher" id="teacher" class="form-control" required disabled>
+                                <option value="">Select Department First</option>
+                            </select>
+                                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Assign Teacher</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- AJAX Script for Dynamic Dropdowns -->
+<script>
+    $(document).ready(function() {
+        // Department change handler
+        $('#department').change(function() {
+            var departmentId = $(this).val();
+            console.log('Department selected:', departmentId);
+            
+            if (departmentId) {
+                // Load programs
+                $.ajax({
+                    url: "{% url 'get_programs_by_department' %}",
+                    data: { department_id: departmentId },
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log('Programs data:', data);
+                        $('#program').empty().append('<option value="">Select Program</option>');
+                        if (data && data.length > 0) {
+                            $.each(data, function(index, item) {
+                                $('#program').append($('<option>', {
+                                    value: item.id,
+                                    text: item.name
+                                }));
+                            });
+                        } else {
+                            $('#program').append('<option value="">No programs available</option>');
+                        }
+                        $('#program').prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading programs:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        $('#program').prop('disabled', true).empty().append('<option value="">Error loading programs</option>');
+                    }
+                });
+
+                // Load teachers
+                $.ajax({
+                    url: "{% url 'get_teachers_by_department' %}",
+                    data: { 'department_id': departmentId },
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log('Teachers data:', data);
+                        $('#teacher').empty().append('<option value="">Select Teacher</option>');
+                        if (data.teachers && data.teachers.length > 0) {
+                            $.each(data.teachers, function(index, teacher) {
+                                $('#teacher').append($('<option>', {
+                                    value: teacher.id,
+                                    text: teacher.name + ' (' + teacher.teacher_code + ') - ' + teacher.email
+                                }));
+                            });
+                        } else {
+                            $('#teacher').append('<option value="">No teachers available</option>');
+                        }
+                        $('#teacher').prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading teachers:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        $('#teacher').prop('disabled', true).empty().append('<option value="">Error loading teachers</option>');
+                    }
+                });
+            } else {
+                $('#program').prop('disabled', true).empty().append('<option value="">Select Department First</option>');
+                $('#semester').prop('disabled', true).empty().append('<option value="">Select Program First</option>');
+                $('#course').prop('disabled', true).empty().append('<option value="">Select Semester First</option>');
+                $('#teacher').prop('disabled', true).empty().append('<option value="">Select Department First</option>');
+            }
+        });
+
+        // Program change handler
+        $('#program').change(function() {
+            var programId = $(this).val();
+            console.log('Program selected:', programId);
+            
+            if (programId) {
+                $.ajax({
+                    url: "{% url 'get_semesters_by_program' %}",
+                    data: { program_id: programId },
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log('Semesters data:', data);
+                        $('#semester').empty().append('<option value="">Select Semester</option>');
+                        if (data && data.length > 0) {
+                            $.each(data, function(index, item) {
+                                $('#semester').append($('<option>', {
+                                    value: item.id,
+                                    text: item.name
+                                }));
+                            });
+                } else {
+                            $('#semester').append('<option value="">No semesters available</option>');
+                        }
+                        $('#semester').prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading semesters:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        $('#semester').prop('disabled', true).empty().append('<option value="">Error loading semesters</option>');
+                    }
+                });
+                } else {
+                $('#semester').prop('disabled', true).empty().append('<option value="">Select Program First</option>');
+                $('#course').prop('disabled', true).empty().append('<option value="">Select Semester First</option>');
+            }
+        });
+
+        // Semester change handler
+        $('#semester').change(function() {
+            var semesterId = $(this).val();
+            console.log('Semester selected:', semesterId);
+            
+            if (semesterId) {
+                $.ajax({
+                    url: "{% url 'load_courses' %}",
+                    data: { semester_id: semesterId },
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log('Courses data:', data);
+                        $('#course').empty().append('<option value="">Select Course</option>');
+                if (data && data.length > 0) {
+                            $.each(data, function(index, item) {
+                                $('#course').append($('<option>', {
+                                    value: item.id,
+                                    text: item.name + ' (' + item.code + ')'
+                                }));
+                            });
+                } else {
+                            $('#course').append('<option value="">No courses available</option>');
+                }
+                        $('#course').prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                console.error('Error loading courses:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        $('#course').prop('disabled', true).empty().append('<option value="">Error loading courses</option>');
+                    }
+            });
+    } else {
+                $('#course').prop('disabled', true).empty().append('<option value="">Select Semester First</option>');
+            }
+    });
+});
+</script>
+{% endblock %} 

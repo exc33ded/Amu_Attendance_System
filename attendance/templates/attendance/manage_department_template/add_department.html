@@ -1,0 +1,39 @@
+{% extends "attendance/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Add New Department</h2>
+        <div>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">🏠 Admin Dashboard</a>
+            <a href="{% url 'manage_department' %}" class="btn btn-secondary">📋 Department List</a>
+        </div>
+    </div>
+    <hr>
+
+    <!-- Success & Error Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-lg p-4">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="departmentName" class="form-label">Department Name</label>
+                <input type="text" class="form-control" id="departmentName" name="name" placeholder="Enter department name" required>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success">✅ Add Department</button>
+                <a href="{% url 'manage_department' %}" class="btn btn-danger">❌ Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

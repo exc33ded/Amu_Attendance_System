@@ -1,0 +1,250 @@
+{% extends 'attendance/chairperson_authentication_template/chairperson_base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Attendance Summary - Chairperson{% endblock %}
+
+{% block page_title %}Attendance Summary{% endblock %}
+
+{% block chairperson_content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Attendance Summary</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="department" class="form-label">Department</label>
+                        <input type="text" class="form-control" value="{{ department.name }}" disabled>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="program" class="form-label">Program</label>
+                        <select class="form-select" id="program" name="program" required>
+                            <option value="">Select Program</option>
+                            {% for program in programs %}
+                                <option value="{{ program.id }}" {% if selected_program == program.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ program.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="semester" class="form-label">Semester</label>
+                        <select class="form-select" id="semester" name="semester" required>
+                            <option value="">Select Semester</option>
+                            {% for semester in semesters %}
+                                <option value="{{ semester.id }}" {% if selected_semester == semester.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ semester.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="from_date" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="from_date" name="from_date" 
+                               value="{{ from_date|default:'' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="to_date" class="form-label">To Date</label>
+                        <input type="date" class="form-control" id="to_date" name="to_date" 
+                               value="{{ to_date|default:'' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="courses" class="form-label">Courses</label>
+                        <select class="form-select" id="courses" name="courses" multiple>
+                            {% for course in courses %}
+                                <option value="{{ course.id }}" {% if course.id|stringformat:"s" in selected_courses %}selected{% endif %}>
+                                    {{ course.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple courses</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">Generate Summary</button>
+                        {% if program and semester and from_date and to_date %}
+                            <a href="{% url 'chairperson_export_attendance_csv' %}?program={{ program.id }}&semester={{ semester.id }}&from_date={{ from_date }}&to_date={{ to_date }}{% for course_id in selected_courses %}&courses={{ course_id }}{% endfor %}" 
+                               class="btn btn-success">
+                               <i class="fas fa-file-csv"></i> Download CSV
+                            </a>
+                            <a href="{% url 'chairperson_export_attendance_pdf' %}?program={{ program.id }}&semester={{ semester.id }}&from_date={{ from_date }}&to_date={{ to_date }}{% for course_id in selected_courses %}&courses={{ course_id }}{% endfor %}" 
+                               class="btn btn-danger">
+                               <i class="fas fa-file-pdf"></i> Download PDF
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if program and semester and from_date and to_date %}
+        <!-- Summary Table -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>Filter Details:</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Department:</strong> {{ department.name }}</p>
+                            <p><strong>Program:</strong> {{ program.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Semester:</strong> {{ semester.name }}</p>
+                            <p><strong>Date Range:</strong> {{ from_date }} to {{ to_date }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Sr. No.</th>
+                                <th>Student Name</th>
+                                {% for course in courses %}
+                                    <th colspan="2" class="text-center">{{ course.code }}<br>Total Classes: {{ course.total_classes }}</th>
+                                {% endfor %}
+                                <th>Total Present<br>Total Classes: {{ total_classes }}</th>
+                                <th>Overall %</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                {% for course in courses %}
+                                    <th>Present</th>
+                                    <th>%</th>
+                                {% endfor %}
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ student.name }}</td>
+                                    {% for course in student.courses %}
+                                        <td>{{ course.present_count }}</td>
+                                        <td>{{ course.percentage }}%</td>
+                                    {% endfor %}
+                                    <td>{{ student.total_present }}</td>
+                                    <td>{{ student.overall_percentage }}%</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="{% widthratio courses|length 1 2|add:3 %}" class="text-center">No attendance records found.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const programSelect = document.getElementById('program');
+    const semesterSelect = document.getElementById('semester');
+    const courseSelect = document.getElementById('courses');
+
+    function loadDropdown(url, targetElement, defaultOption, enable=true) {
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                targetElement.innerHTML = `<option value="">${defaultOption}</option>`;
+                if (data.semesters) {
+                    data.semesters.forEach(semester => {
+                        targetElement.innerHTML += `<option value="${semester.id}">${semester.name}</option>`;
+                    });
+                }
+                targetElement.disabled = !enable;
+            })
+            .catch(error => {
+                console.error('Error loading dropdown:', error);
+                targetElement.innerHTML = `<option value="">Error: ${error.message}</option>`;
+                targetElement.disabled = true;
+            });
+    }
+
+    function updateSemesters(programId) {
+        semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+        semesterSelect.disabled = true;
+        courseSelect.innerHTML = '<option value="">All Courses</option>';
+        courseSelect.disabled = true;
+
+        if (!programId) return;
+
+        loadDropdown(`/ajax/get-semesters-by-program/?program_id=${programId}`, 
+                    semesterSelect, 'Select Semester', true);
+    }
+
+    function updateCourses(semesterId) {
+        courseSelect.innerHTML = '<option value="">All Courses</option>';
+        courseSelect.disabled = true;
+
+        if (!semesterId) return;
+
+        fetch(`/chairperson/get-courses-by-semester/?semester_id=${semesterId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                courseSelect.innerHTML = '<option value="">All Courses</option>';
+                if (data && data.length > 0) {
+                    data.forEach(course => {
+                        courseSelect.innerHTML += `<option value="${course.id}">${course.name} (${course.code})</option>`;
+                    });
+                    courseSelect.disabled = false;
+                } else {
+                    courseSelect.innerHTML += '<option value="" disabled>No courses found for this selection</option>';
+                    courseSelect.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading courses:', error);
+                courseSelect.innerHTML = '<option value="">Error: ' + error.message + '</option>';
+                courseSelect.disabled = true;
+            });
+    }
+
+    // Event listener for program change
+    programSelect.addEventListener('change', function() {
+        updateSemesters(this.value);
+    });
+
+    // Event listener for semester change
+    semesterSelect.addEventListener('change', function() {
+        updateCourses(this.value);
+    });
+
+    // Initialize dropdowns if values are pre-selected
+    if (programSelect.value) {
+        updateSemesters(programSelect.value);
+        if (semesterSelect.value) {
+            updateCourses(semesterSelect.value);
+        }
+    }
+});
+</script>
+{% endblock %} 

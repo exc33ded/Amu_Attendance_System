@@ -1,0 +1,72 @@
+{% extends "attendance/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Add New Course</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="course_name" class="form-label">Course Name</label>
+            <input type="text" class="form-control" id="course_name" name="course_name" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="course_code" class="form-label">Course Code</label>
+            <input type="text" class="form-control" id="course_code" name="course_code" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="program" class="form-label">Program</label>
+            <select class="form-select" id="program" name="program" required>
+                <option value="">-- Select Program --</option>
+                {% for program in programs %}
+                    <option value="{{ program.id }}">{{ program.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="semester" class="form-label">Semester</label>
+            <select class="form-select" id="semester" name="semester" required>
+                <option value="">-- Select Semester --</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="teacher" class="form-label">Assign Teacher</label>
+            <select class="form-select" id="teacher" name="teacher">
+                <option value="">-- Select Teacher --</option>
+                {% for teacher in teachers %}
+                    <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Course</button>
+        <a href="{% url 'manage-courses' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<!-- AJAX Script to Dynamically Load Semesters -->
+<script>
+document.getElementById("program").addEventListener("change", function() {
+    let programId = this.value;
+    let semesterDropdown = document.getElementById("semester");
+
+    semesterDropdown.innerHTML = '<option value="">-- Loading --</option>';
+
+    fetch(`/get-semesters/?program_id=${programId}`)
+        .then(response => response.json())
+        .then(data => {
+            semesterDropdown.innerHTML = '<option value="">-- Select Semester --</option>';
+            data.forEach(semester => {
+                semesterDropdown.innerHTML += `<option value="${semester.id}">${semester.name}</option>`;
+            });
+        })
+        .catch(error => console.error("Error fetching semesters:", error));
+});
+</script>
+
+{% endblock %}

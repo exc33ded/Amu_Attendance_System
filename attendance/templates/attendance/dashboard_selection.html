@@ -1,0 +1,71 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Select Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Select Dashboard</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead text-center mb-4">Welcome, {{ request.user.get_full_name }}!</p>
+                    <p class="text-center text-muted mb-4">You have access to multiple dashboards. Please select which dashboard you would like to access:</p>
+                    
+                    <div class="row">
+                        {% if 'faculty' in user_roles %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chalkboard-teacher fa-3x text-primary mb-3"></i>
+                                    <h5 class="card-title">Teacher Dashboard</h5>
+                                    <p class="card-text text-muted">Access your courses, mark attendance, and manage student records.</p>
+                                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-primary">Go to Teacher Dashboard</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if 'chairperson' in user_roles %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user-tie fa-3x text-success mb-3"></i>
+                                    <h5 class="card-title">Chairperson Dashboard</h5>
+                                    <p class="card-text text-muted">Manage department, programs, and faculty assignments.</p>
+                                    <a href="{% url 'chairperson_dashboard' %}" class="btn btn-success">Go to Chairperson Dashboard</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.btn {
+    border-radius: 5px;
+    padding: 8px 20px;
+}
+
+.fa-3x {
+    margin-bottom: 15px;
+}
+</style>
+{% endblock %} 

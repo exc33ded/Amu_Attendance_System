@@ -1,0 +1,144 @@
+{% extends 'attendance/fundamental_template/base.html' %}
+{% load static %}
+
+{% block title %}Student Registration{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Student Registration</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="POST" id="studentRegistrationForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_first_name">First Name</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_last_name">Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_email">Email</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_mobile_no">Mobile Number</label>
+                                {{ form.mobile_no }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_enrollment_no">Enrollment Number</label>
+                                {{ form.enrollment_no }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_roll_no">Roll Number</label>
+                                {{ form.roll_no }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="id_department">Department</label>
+                                {{ form.department }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="id_program">Program</label>
+                                {{ form.program }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="id_semester">Semester</label>
+                                {{ form.semester }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_password1">Password</label>
+                                {{ form.password1 }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_password2">Confirm Password</label>
+                                {{ form.password2 }}
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="{% url 'student_login' %}">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Handle department change
+        $('#id_department').change(function() {
+            var departmentId = $(this).val();
+            if (departmentId) {
+                $.ajax({
+                    url: '{% url "get_programs_by_department" %}',
+                    data: {
+                        'department_id': departmentId
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#id_program').html(data.html);
+                        $('#id_semester').html('<option value="">Select Semester</option>');
+                    }
+                });
+            } else {
+                $('#id_program').html('<option value="">Select Program</option>');
+                $('#id_semester').html('<option value="">Select Semester</option>');
+            }
+        });
+
+        // Handle program change
+        $('#id_program').change(function() {
+            var programId = $(this).val();
+            if (programId) {
+                $.ajax({
+                    url: '{% url "get_semesters_by_program" %}',
+                    data: {
+                        'program_id': programId
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#id_semester').html(data.html);
+                    }
+                });
+            } else {
+                $('#id_semester').html('<option value="">Select Semester</option>');
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

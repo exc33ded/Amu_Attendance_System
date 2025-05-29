@@ -1,0 +1,346 @@
+{% extends 'attendance/student_authentication_template/base.html' %}
+{% load static %}
+
+{% block title %}Request Attendance Change{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Request Attendance Change</h4>
+                    <p class="text-muted">You can request changes to your attendance within 1 hour of it being marked. Only records within the 1-hour window are shown.</p>
+                </div>
+                <div class="card-body">
+                    {% if attendance_records %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Course</th>
+                                        <th>Status</th>
+                                        <th>Marked At</th>
+                                        <th>Time Remaining</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in attendance_records %}
+                                    <tr>
+                                        <td>{{ record.date }}</td>
+                                        <td>{{ record.course.name }} ({{ record.course.code }})</td>
+                                        <td>
+                                            {% if record.status == 'Present' %}
+                                                <span class="badge bg-success">Present</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Absent</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ record.marked_at }}</td>
+                                        <td>
+                                            <span class="countdown" data-marked-at="{{ record.marked_at|date:'c' }}"></span>
+                                        </td>
+                                        <td>
+                                            {% if record.has_pending_request %}
+                                                <span class="badge bg-warning text-dark">Request Pending</span>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-primary request-btn" data-bs-toggle="modal" data-bs-target="#requestModal{{ record.id }}" data-record-id="{{ record.id }}">
+                                                    Request Change
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Request Change Modals -->
+                        {% for record in attendance_records %}
+                        {% if not record.has_pending_request %}
+                        <div class="modal fade" id="requestModal{{ record.id }}" tabindex="-1" aria-labelledby="requestModalLabel{{ record.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="requestModalLabel{{ record.id }}">Request Attendance Change</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form method="post" action="{% url 'submit_attendance_change_request' %}">
+                                        {% csrf_token %}
+                                        <div class="modal-body">
+                                            <input type="hidden" name="attendance_id" value="{{ record.id }}">
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label">Course:</label>
+                                                <p class="form-control-static">{{ record.course.name }} ({{ record.course.code }})</p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label">Date:</label>
+                                                <p class="form-control-static">{{ record.date }}</p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label">Current Status:</label>
+                                                <p class="form-control-static">
+                                                    {% if record.status == 'Present' %}
+                                                        <span class="badge bg-success">Present</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Absent</span>
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label">Requested Status:</label>
+                                                <p class="form-control-static">
+                                                    {% if record.status == 'Present' %}
+                                                        <span class="badge bg-danger">Absent</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success">Present</span>
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="reason" class="form-label">Reason:</label>
+                                                <select class="form-select" id="reason" name="reason" required>
+                                                    <option value="">Select a reason</option>
+                                                    <option value="Medical Emergency">Medical Emergency</option>
+                                                    <option value="Technical Issue">Technical Issue</option>
+                                                    <option value="Late Attendance">Late Attendance</option>
+                                                    <option value="Administrative Error">Administrative Error</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="additional_details" class="form-label">Additional Details:</label>
+                                                <textarea class="form-control" id="additional_details" name="additional_details" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>No recent attendance records found within the last hour. Attendance change requests must be submitted within 1 hour of attendance being marked.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.countdown {
+    font-weight: 600;
+}
+.countdown.warning {
+    color: #dc3545;
+}
+.countdown.expired {
+    color: #6c757d;
+}
+
+/* Modal Styling */
+.modal {
+    animation: none !important;
+}
+
+.modal-dialog {
+    transform: none !important;
+    transition: none !important;
+    margin: 1.75rem auto;
+}
+
+.modal-content {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal.fade .modal-dialog {
+    transform: none !important;
+    transition: none !important;
+}
+
+.modal.show .modal-dialog {
+    transform: none !important;
+}
+
+/* Form Styling */
+.form-select:focus,
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.modal-backdrop {
+    opacity: 0.5 !important;
+}
+
+/* Button Styling */
+.btn-primary {
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update all countdown timers
+    const countdownElements = document.querySelectorAll('.countdown');
+    let activeModal = null; // Track the currently active modal
+    
+    function updateCountdowns() {
+        countdownElements.forEach(element => {
+            const markedAt = new Date(element.dataset.markedAt);
+            const now = new Date();
+            const timeDiff = markedAt.getTime() + (60 * 60 * 1000) - now.getTime(); // 1 hour in milliseconds
+            
+            if (timeDiff <= 0) {
+                element.textContent = 'Expired';
+                element.classList.add('expired');
+                
+                // Disable the corresponding request button
+                const row = element.closest('tr');
+                const requestBtn = row.querySelector('.request-btn');
+                if (requestBtn) {
+                    requestBtn.disabled = true;
+                    requestBtn.textContent = 'Time Expired';
+                }
+            } else {
+                const minutes = Math.floor(timeDiff / (60 * 1000));
+                const seconds = Math.floor((timeDiff % (60 * 1000)) / 1000);
+                
+                element.textContent = `${minutes}m ${seconds}s`;
+                
+                // Add warning class when less than 10 minutes remaining
+                if (minutes < 10) {
+                    element.classList.add('warning');
+                }
+            }
+        });
+    }
+    
+    // Update countdowns immediately and then every second
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+
+    // Close any open modals before opening a new one
+    function closeAllModals() {
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(modal => {
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+        });
+        // Remove any modal backdrops
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        document.body.classList.remove('modal-open');
+    }
+
+    // Handle Request Change button clicks
+    const requestButtons = document.querySelectorAll('.request-btn');
+    requestButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Close any open modals first
+            closeAllModals();
+            
+            // Get the target modal ID
+            const modalId = this.getAttribute('data-bs-target');
+            const modal = document.querySelector(modalId);
+            
+            if (modal) {
+                // Initialize Bootstrap modal if not already initialized
+                let modalInstance = bootstrap.Modal.getInstance(modal);
+                if (!modalInstance) {
+                    modalInstance = new bootstrap.Modal(modal, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                
+                // Show the modal
+                modalInstance.show();
+                activeModal = modalInstance;
+            }
+        });
+    });
+
+    // Handle modal close events
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Clean up when modal is closed
+            activeModal = null;
+            document.body.classList.remove('modal-open');
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+        });
+
+        // Handle form submission
+        const form = modal.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const reasonSelect = this.querySelector('select[name="reason"]');
+                if (!reasonSelect.value) {
+                    e.preventDefault();
+                    alert('Please select a reason for the attendance change request.');
+                    reasonSelect.focus();
+                    return;
+                }
+                
+                // Disable the form while submitting to prevent double submission
+                const submitButton = this.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+                }
+            });
+        }
+    });
+
+    // Close modal when clicking the close button
+    const closeButtons = document.querySelectorAll('.modal .btn-close, .modal .btn-secondary');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            closeAllModals();
+        });
+    });
+
+    // Prevent modal from opening if time has expired
+    document.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        if (button && button.disabled) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %} 

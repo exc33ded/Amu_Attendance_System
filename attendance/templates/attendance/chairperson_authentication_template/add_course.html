@@ -1,0 +1,97 @@
+{% extends 'attendance/chairperson_authentication_template/chairperson_base.html' %}
+{% load static %}
+
+{% block title %}Add Course{% endblock %}
+
+{% block page_title %}Add New Course{% endblock %}
+
+{% block chairperson_content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="courseForm">
+            {% csrf_token %}
+            
+            {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="program" class="form-label">Program</label>
+                    <select class="form-select" id="program" name="program" required>
+                        <option value="">Select Program</option>
+                        {% for program in programs %}
+                        <option value="{{ program.id }}">{{ program.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="semester" class="form-label">Semester</label>
+                    <select class="form-select" id="semester" name="semester" required>
+                        <option value="">Select Semester</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="course_code" class="form-label">Course Code</label>
+                    <input type="text" class="form-control" id="course_code" name="course_code" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label for="course_name" class="form-label">Course Name</label>
+                    <input type="text" class="form-control" id="course_name" name="course_name" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="credits" class="form-label">Credits</label>
+                    <input type="number" class="form-control" id="credits" name="credits" min="1" max="6" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="course_description" class="form-label">Course Description</label>
+                <textarea class="form-control" id="course_description" name="course_description" rows="3"></textarea>
+            </div>
+
+            <div class="text-end">
+                <a href="{% url 'chairperson_manage_courses' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Course</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const programSelect = document.getElementById('program');
+    const semesterSelect = document.getElementById('semester');
+
+    programSelect.addEventListener('change', function() {
+        const programId = this.value;
+        if (programId) {
+            fetch(`/get-semesters/?program=${programId}`)
+                .then(response => response.json())
+                .then(data => {
+                    semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+                    data.forEach(semester => {
+                        semesterSelect.innerHTML += `<option value="${semester.id}">${semester.name}</option>`;
+                    });
+                });
+        } else {
+            semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+        }
+    });
+});
+</script>
+{% endblock %} 

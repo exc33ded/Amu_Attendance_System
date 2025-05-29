@@ -1,0 +1,139 @@
+{% extends "attendance/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage Semesters</h2>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Back</a>
+    </div>
+
+    <!-- Success & Error Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Filter Section -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="filterDepartment" class="form-label"><strong>Filter by Department:</strong></label>
+                    <select class="form-select" id="filterDepartment">
+                        <option value="">-- Show All Departments --</option>
+                        {% for department in departments %}
+                            <option value="{{ department.id }}">{{ department.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="filterProgram" class="form-label"><strong>Filter by Program:</strong></label>
+                    <select class="form-select" id="filterProgram">
+                        <option value="">-- Show All Programs --</option>
+                        {% for program in programs %}
+                            <option value="{{ program.id }}" data-department="{{ program.department.id }}">{{ program.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Semesters Table -->
+    <div class="card shadow">
+        <div class="card-body">
+            <h5 class="card-title mb-4">Existing Semesters</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Department</th>
+                            <th>Program</th>
+                            <th>Semester</th>
+                        </tr>
+                    </thead>
+                    <tbody id="semesterTable">
+                        {% for semester in semesters %}
+                        <tr data-department="{{ semester.program.department.id }}" data-program="{{ semester.program.id }}">
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ semester.program.department.name }}</td>
+                            <td>{{ semester.program.name }}</td>
+                            <td>{{ semester.name }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No semesters available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Filtering Semesters -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let filterDepartment = document.getElementById("filterDepartment");
+    let filterProgram = document.getElementById("filterProgram");
+    let semesterTableRows = document.querySelectorAll("#semesterTable tr");
+    let programOptions = filterProgram.querySelectorAll("option");
+
+    // Function to update program dropdown based on selected department
+    function updateProgramDropdown(selectedDepartmentId) {
+        programOptions.forEach(option => {
+            if (option.value === "") {
+                option.style.display = ""; // Always show the "Show All Programs" option
+            } else {
+                const programDepartmentId = option.getAttribute("data-department");
+                option.style.display = (selectedDepartmentId === "" || programDepartmentId === selectedDepartmentId) ? "" : "none";
+            }
+        });
+
+        // Reset program selection if the selected program is not in the filtered list
+        const selectedProgram = filterProgram.value;
+        if (selectedProgram && selectedDepartmentId) {
+            const selectedOption = filterProgram.querySelector(`option[value="${selectedProgram}"]`);
+            if (selectedOption && selectedOption.style.display === "none") {
+                filterProgram.value = "";
+            }
+        }
+    }
+
+    // Function to filter the table
+    function filterTable() {
+        let selectedDepartment = filterDepartment.value;
+        let selectedProgram = filterProgram.value;
+
+        semesterTableRows.forEach(row => {
+            let rowDepartment = row.getAttribute("data-department");
+            let rowProgram = row.getAttribute("data-program");
+            
+            const showRow = (selectedDepartment === "" || rowDepartment === selectedDepartment) &&
+                          (selectedProgram === "" || rowProgram === selectedProgram);
+            
+            row.style.display = showRow ? "" : "none";
+        });
+    }
+
+    // Event listeners
+    filterDepartment.addEventListener("change", function() {
+        updateProgramDropdown(this.value);
+        filterTable();
+    });
+
+    filterProgram.addEventListener("change", filterTable);
+
+    // Initialize program dropdown based on any pre-selected department
+    if (filterDepartment.value) {
+        updateProgramDropdown(filterDepartment.value);
+    }
+});
+</script>
+{% endblock %}

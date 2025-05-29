@@ -1,0 +1,28 @@
+{% extends "attendance/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Edit Department</h2>
+
+    <!-- Success & Error Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="departmentName" class="form-label">Department Name</label>
+            <input type="text" class="form-control" id="departmentName" name="name" value="{{ department.name }}" required>
+        </div>
+
+        <button type="submit" class="btn btn-success">Update Department</button>
+        <a href="{% url 'manage_department' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

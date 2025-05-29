@@ -1,0 +1,280 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}Attendance Summary{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Attendance Summary</h4>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Back</a>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Filter Attendance</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label for="department" class="form-label">Department</label>
+                    <select class="form-select" id="department" name="department" required>
+                        <option value="">Select Department</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if selected_department == dept.id|stringformat:"s" %}selected{% endif %}>
+                            {{ dept.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="program" class="form-label">Program</label>
+                    <select class="form-select" id="program" name="program" required {% if not programs %}disabled{% endif %}>
+                        <option value="">Select Program</option>
+                        {% for prog in programs %}
+                        <option value="{{ prog.id }}" {% if selected_program == prog.id|stringformat:"s" %}selected{% endif %}>
+                            {{ prog.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="semester" class="form-label">Semester</label>
+                    <select class="form-select" id="semester" name="semester" required {% if not semesters %}disabled{% endif %}>
+                        <option value="">Select Semester</option>
+                        {% for sem in semesters %}
+                        <option value="{{ sem.id }}" {% if selected_semester == sem.id|stringformat:"s" %}selected{% endif %}>
+                            {{ sem.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="courses" class="form-label">Courses</label>
+                    <select class="form-select" id="courses" name="courses" multiple>
+                        {% for course in courses %}
+                        <option value="{{ course.id }}" {% if course.id|stringformat:"s" in selected_courses %}selected{% endif %}>
+                            {{ course.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple courses</small>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="from_date" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date|default:'' }}" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="to_date" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date|default:'' }}" required>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Generate Summary</button>
+                    {% if has_data %}
+                    <a href="{% url 'admin_export_attendance_csv' %}?department={{ department.id }}&program={{ program.id }}&semester={{ semester.id }}&from_date={{ from_date }}&to_date={{ to_date }}{% for course_id in selected_courses %}&courses={{ course_id }}{% endfor %}" class="btn btn-success">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </a>
+                    <a href="{% url 'admin_export_attendance_pdf' %}?department={{ department.id }}&program={{ program.id }}&semester={{ semester.id }}&from_date={{ from_date }}&to_date={{ to_date }}{% for course_id in selected_courses %}&courses={{ course_id }}{% endfor %}" class="btn btn-danger">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if has_data %}
+    <!-- Display attendance summary data -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Attendance Summary</h5>
+        </div>
+        <div class="card-body">
+            <!-- Filter details -->
+            <div class="mb-4">
+                <h6>Filter Details:</h6>
+                <div class="row">
+                    <div class="col-md-3">
+                        <p><strong>Department:</strong> {{ department.name }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Program:</strong> {{ program.name }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Semester:</strong> {{ semester.name }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Date Range:</strong> {{ from_date }} to {{ to_date }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary table -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student Name</th>
+                            {% for course in courses %}
+                            <th colspan="2">{{ course.name }} ({{ course.code }})</th>
+                            {% endfor %}
+                            <th>Overall</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            {% for course in courses %}
+                            <th>Present/Total</th>
+                            <th>%</th>
+                            {% endfor %}
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.name }}</td>
+                            {% for course_stat in student.courses %}
+                            <td>{{ course_stat.present_count }}/{{ course_stat.total_classes }}</td>
+                            <td>{{ course_stat.percentage }}%</td>
+                            {% endfor %}
+                            <td>{{ student.overall_percentage }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+function loadDropdown(url, targetElement, defaultOption, enable=true) {
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            targetElement.innerHTML = `<option value="">${defaultOption}</option>`;
+            if (Array.isArray(data)) {
+                data.forEach(item => {
+                    targetElement.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                });
+            } else if (data.programs) {
+                data.programs.forEach(program => {
+                    targetElement.innerHTML += `<option value="${program.id}">${program.name}</option>`;
+                });
+            } else if (data.semesters) {
+                data.semesters.forEach(semester => {
+                    targetElement.innerHTML += `<option value="${semester.id}">${semester.name}</option>`;
+                });
+            }
+            targetElement.disabled = !enable;
+        })
+        .catch(error => {
+            console.error('Error loading dropdown:', error);
+            targetElement.innerHTML = `<option value="">Error loading options</option>`;
+            targetElement.disabled = true;
+        });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const departmentSelect = document.getElementById('department');
+    const programSelect = document.getElementById('program');
+    const semesterSelect = document.getElementById('semester');
+    const coursesSelect = document.getElementById('courses');
+
+    // Department change handler
+    departmentSelect.addEventListener('change', function() {
+        const departmentId = this.value;
+        if (departmentId) {
+            loadDropdown(`/get-programs/?department_id=${departmentId}`, programSelect, "Select Program", true);
+            // Reset and disable semester and courses dropdowns
+            semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+            semesterSelect.disabled = true;
+            coursesSelect.innerHTML = '<option value="">Select Courses</option>';
+            coursesSelect.disabled = true;
+        } else {
+            // Reset all dependent dropdowns if no department is selected
+            programSelect.innerHTML = '<option value="">Select Program</option>';
+            programSelect.disabled = true;
+            semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+            semesterSelect.disabled = true;
+            coursesSelect.innerHTML = '<option value="">Select Courses</option>';
+            coursesSelect.disabled = true;
+        }
+    });
+
+    // Program change handler
+    programSelect.addEventListener('change', function() {
+        const programId = this.value;
+        if (programId) {
+            loadDropdown(`/get-semesters/?program_id=${programId}`, semesterSelect, "Select Semester", true);
+            // Reset and disable courses dropdown
+            coursesSelect.innerHTML = '<option value="">Select Courses</option>';
+            coursesSelect.disabled = true;
+        } else {
+            // Reset semester and courses dropdowns if no program is selected
+            semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+            semesterSelect.disabled = true;
+            coursesSelect.innerHTML = '<option value="">Select Courses</option>';
+            coursesSelect.disabled = true;
+        }
+    });
+
+    // Semester change handler
+    semesterSelect.addEventListener('change', function() {
+        const semesterId = this.value;
+        const programId = programSelect.value;
+        const departmentId = departmentSelect.value;
+        
+        if (semesterId && programId && departmentId) {
+            // Fetch courses for the selected semester, program, and department
+            fetch(`/get-courses/?semester_id=${semesterId}&program_id=${programId}&department_id=${departmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    coursesSelect.innerHTML = '<option value="">Select Courses</option>';
+                    if (data.courses && data.courses.length > 0) {
+                        data.courses.forEach(course => {
+                            coursesSelect.innerHTML += `<option value="${course.id}">${course.name}</option>`;
+                        });
+                        coursesSelect.disabled = false;
+                    } else {
+                        coursesSelect.innerHTML += '<option value="">No courses available</option>';
+                        coursesSelect.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading courses:', error);
+                    coursesSelect.innerHTML = '<option value="">Error loading courses</option>';
+                    coursesSelect.disabled = true;
+                });
+        } else {
+            coursesSelect.innerHTML = '<option value="">Select Courses</option>';
+            coursesSelect.disabled = true;
+        }
+    });
+
+    // Initialize dropdowns if values are pre-selected
+    if (departmentSelect.value) {
+        loadDropdown(`/get-programs/?department_id=${departmentSelect.value}`, programSelect, "Select Program", true);
+    }
+    if (programSelect.value) {
+        loadDropdown(`/get-semesters/?program_id=${programSelect.value}`, semesterSelect, "Select Semester", true);
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %} 

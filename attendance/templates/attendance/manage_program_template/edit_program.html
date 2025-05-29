@@ -1,0 +1,58 @@
+{% extends "attendance/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Program</h2>
+
+    <!-- Success & Error Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-lg p-4">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Select Department -->
+            <div class="mb-3">
+                <label for="department" class="form-label">Select Department</label>
+                <select class="form-select" id="department" name="department" required>
+                    {% for department in departments %}
+                        <option value="{{ department.id }}" {% if department.id == program.department.id %}selected{% endif %}>
+                            {{ department.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Program Name -->
+            <div class="mb-3">
+                <label for="program_name" class="form-label">Program Name</label>
+                <input type="text" class="form-control" id="program_name" name="program_name" value="{{ program.name }}" required>
+            </div>
+
+            <!-- Program Duration (Years) -->
+            <div class="mb-3">
+                <label for="duration" class="form-label">Program Duration (Years)</label>
+                <input type="number" class="form-control" id="duration" name="duration" value="{{ program.duration }}" min="1" max="6" required>
+            </div>
+
+            <!-- Number of Semesters -->
+            <div class="mb-3">
+                <label for="num_semesters" class="form-label">Number of Semesters</label>
+                <input type="number" class="form-control" id="num_semesters" name="num_semesters" value="{{ program.num_semesters }}" min="1" max="12" required>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success">💾 Save Changes</button>
+                <a href="{% url 'manage_programs' %}" class="btn btn-danger">❌ Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

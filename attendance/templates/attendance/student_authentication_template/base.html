@@ -1,0 +1,398 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Aligarh Muslim University Attendance Management System">
+    <meta name="keywords" content="AMU, Attendance, University, Education">
+    <title>{% block title %}AMS - Attendance Management System{% endblock %}</title>
+    
+    <!-- Modern Bootstrap Theme -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Premium Theme CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    
+    <!-- Modern Theme Styles -->
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --text-primary: #2b2d42;
+            --text-secondary: #8d99ae;
+            --border-color: #e9ecef;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: var(--shadow-md);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: var(--transition);
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: var(--transition);
+            text-transform: none;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.15);
+        }
+
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background-color: var(--light-color);
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer h5 {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .footer h5::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .footer ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer ul li {
+            margin-bottom: 1rem;
+        }
+
+        .footer ul li a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            display: inline-block;
+        }
+
+        .footer ul li a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            margin-right: 10px;
+            transition: var(--transition);
+            color: white;
+        }
+
+        .social-links a:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <img src="{% static 'images/amu_logo.png' %}" alt="AMU Logo" height="40" class="me-2" loading="lazy">
+                <div>
+                    <span class="d-block fw-bold">Aligarh Muslim University</span>
+                    <small class="d-block text-light opacity-75">Attendance Management System</small>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="bi bi-house-door me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'about' %}">
+                            <i class="bi bi-info-circle me-1"></i>About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">
+                            <i class="bi bi-envelope me-1"></i>Contact
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        {% if user.role == 'admin' or user.is_staff %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                                    <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == 'faculty' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'teacher_dashboard' %}">
+                                    <i class="bi bi-speedometer2 me-1"></i>Teacher Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == 'student' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'student_dashboard' %}">
+                                    <i class="bi bi-speedometer2 me-1"></i>Student Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == 'chairperson' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'chairperson_dashboard' %}">
+                                    <i class="bi bi-speedometer2 me-1"></i>Chairperson Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == 'dean' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dean_dashboard' %}">
+                                    <i class="bi bi-speedometer2 me-1"></i>Dean Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profile' %}">
+                                <i class="bi bi-person me-1"></i>Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right me-1"></i>Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'unified_login' %}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+    <main class="main-content">
+    {% block content %}{% endblock %}
+    </main>
+
+<!-- Footer -->
+    <footer class="footer">
+    <div class="container">
+        <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="footer-widget">
+                        <h5>About AMU</h5>
+                        <p class="opacity-75">Founded in 1875, Aligarh Muslim University (AMU) is a distinguished central university, known for its academic excellence, cultural diversity, and historical significance.</p>
+                        <div class="stats mt-3">
+                            <div class="stat-item d-inline-block me-3">
+                                <i class="bi bi-mortarboard-fill"></i>
+                                <span>200+ Courses</span>
+                            </div>
+                            <div class="stat-item d-inline-block me-3">
+                                <i class="bi bi-book-fill"></i>
+                                <span>14L+ Books</span>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-widget">
+                        <h5>Quick Links</h5>
+                        <ul class="footer-links">
+                            <li><a href="https://www.amu.ac.in/admissions">
+                                <i class="bi bi-chevron-right me-1"></i>Admissions
+                            </a></li>
+                            <li><a href="https://www.amu.ac.in/academics">
+                                <i class="bi bi-chevron-right me-1"></i>Academics
+                            </a></li>
+                            <li><a href="https://www.amu.ac.in/library">
+                                <i class="bi bi-chevron-right me-1"></i>Library
+                            </a></li>
+                </ul>
+                    </div>
+            </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="footer-widget">
+                        <h5>Contact Us</h5>
+                        <ul class="contact-info">
+                            <li><i class="bi bi-envelope me-2"></i>
+                                <a href="mailto:info@amu.ac.in">info@amu.ac.in</a>
+                            </li>
+                            <li><i class="bi bi-telephone me-2"></i>+91 571 270 0935</li>
+                            <li><i class="bi bi-geo-alt me-2"></i>Aligarh, Uttar Pradesh, India</li>
+                        </ul>
+                        <div class="social-links mt-3">
+                            <a href="https://www.facebook.com/amuofficial" class="social-icon">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            <a href="https://twitter.com/amuofficial" class="social-icon">
+                                <i class="bi bi-twitter"></i>
+                            </a>
+                            <a href="https://www.instagram.com/amuofficial" class="social-icon">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                            <a href="https://www.linkedin.com/school/aligarh-muslim-university" class="social-icon">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="footer-widget">
+                        <h5>Stay Updated</h5>
+                        <p class="opacity-75">Subscribe to our newsletter for the latest updates and news.</p>
+                        <form class="newsletter-form">
+                            <div class="input-group">
+                                <input type="email" class="form-control" placeholder="Enter email" required>
+                                <button class="btn btn-light" type="submit">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom text-center mt-4 pt-4 border-top border-white border-opacity-10">
+                <p class="mb-0 opacity-75">&copy; 2024 Aligarh Muslim University. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top" id="backToTop">
+        <i class="bi bi-arrow-up"></i>
+    </a>
+
+    <!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/script.js' %}"></script>
+</body>
+</html> 

@@ -1,0 +1,64 @@
+{% extends 'attendance/fundamental_template/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center mb-0">Choose Registration Type</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user-graduate fa-4x mb-3 text-primary"></i>
+                                    <h4 class="card-title">Student Registration</h4>
+                                    <p class="card-text">Register as a student to access course materials and track attendance.</p>
+                                    <a href="{% url 'student_register' %}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>Register as Student
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chalkboard-teacher fa-4x mb-3 text-primary"></i>
+                                    <h4 class="card-title">Faculty Registration</h4>
+                                    <p class="card-text">Register as faculty to manage courses and mark attendance.</p>
+                                    <a href="{% url 'register_teacher' %}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>Register as Faculty
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <p class="mb-0">Already have an account? <a href="{% url 'unified_login' %}" class="text-primary">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+    .card {
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .btn-primary {
+        padding: 10px 20px;
+    }
+    .fas {
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+{% endblock %} 

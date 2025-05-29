@@ -1,0 +1,39 @@
+{% extends 'attendance/base.html' %}
+
+{% block title %}Edit Teacher{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Teacher</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Teacher Code:</label>
+            <input type="text" name="teacher_code" value="{{ teacher.teacher_code }}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Name:</label>
+            <input type="text" name="name" value="{{ teacher.name }}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Department:</label>
+            <select name="department" class="form-select" required>
+                {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if teacher.department.id == dept.id %}selected{% endif %}>
+                        {{ dept.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Update Teacher</button>
+        <a href="{% url 'manage_teachers' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,229 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+
+{% block title %}View Attendance{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">View Attendance</h5>
+            <div>
+                <a href="{% url 'export_student_attendance_csv' %}?{% if selected_courses %}courses={{ selected_courses|join:',' }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}{% endif %}" 
+                   class="btn btn-success me-2" id="exportCsvBtn">
+                    <i class="fas fa-file-csv me-1"></i> Export CSV
+                </a>
+                <a href="{% url 'export_student_attendance_pdf' %}?{% if selected_courses %}courses={{ selected_courses|join:',' }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}{% endif %}" 
+                   class="btn btn-danger" id="exportPdfBtn">
+                    <i class="fas fa-file-pdf me-1"></i> Download PDF
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+            <div class="alert alert-info">
+                {% for message in messages %}
+                <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Course Selection Form -->
+            <form method="post" class="mb-4" id="attendanceForm">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="courses">Select Courses</label>
+                            <select name="courses" id="courses" class="form-control" multiple>
+                                <option value="all">All Courses</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}" {% if course.id|stringformat:"i" in selected_courses %}selected{% endif %}>
+                                    {{ course.name }} ({{ course.code }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple courses</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="start_date">From Date</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}" max="{{ current_date }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="end_date">To Date</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}" max="{{ current_date }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary" id="viewAttendanceBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            View Attendance
+                        </button>
+                        <a href="{% url 'student_view_attendance' %}" class="btn btn-secondary">Clear Filters</a>
+                    </div>
+                </div>
+            </form>
+
+            {% if attendance_records %}
+            <!-- Overall Attendance Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">Overall Attendance Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card bg-light h-100">
+                                <div class="card-body text-center">
+                                    <h6>Total Classes</h6>
+                                    <h3>{{ total_classes }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card bg-light h-100">
+                                <div class="card-body text-center">
+                                    <h6>Present</h6>
+                                    <h3>{{ present_count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card bg-light h-100">
+                                <div class="card-body text-center">
+                                    <h6>Absent</h6>
+                                    <h3>{{ absent_count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card bg-light h-100">
+                                <div class="card-body text-center">
+                                    <h6>Attendance %</h6>
+                                    <h3>{{ attendance_percentage }}%</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per-Course Attendance Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">Per-Course Attendance Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Total Classes</th>
+                                    <th>Present</th>
+                                    <th>Absent</th>
+                                    <th>Attendance %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course_id, stats in course_stats.items %}
+                                <tr>
+                                    <td>{{ stats.name }} ({{ stats.code }})</td>
+                                    <td>{{ stats.total_classes }}</td>
+                                    <td>{{ stats.present_count }}</td>
+                                    <td>{{ stats.absent_count }}</td>
+                                    <td>{{ stats.percentage }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Records Table -->
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_records %}
+                        <tr>
+                            <td>{{ record.date|date:"Y-m-d" }}</td>
+                            <td>{{ record.course.name }} ({{ record.course.code }})</td>
+                            <td>
+                                <span class="badge {% if record.status == 'Present' %}bg-success{% elif record.status == 'Absent' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ record.status }}
+                                </span>
+                            </td>
+                            <td>{{ record.marked_at|date:"H:i:s"|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No attendance records found. Please select courses and date range to view your attendance.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Initialize Select2 for multiple course selection -->
+<script>
+    $(document).ready(function() {
+        $('#courses').select2({
+            placeholder: "Select one or more courses",
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Show loading spinner when form is submitted
+        $('#attendanceForm').on('submit', function() {
+            $('#viewAttendanceBtn .spinner-border').removeClass('d-none');
+        });
+
+        // Update export URLs when form is submitted
+        $('#attendanceForm').on('submit', function() {
+            var selectedCourses = $('#courses').val();
+            var startDate = $('#start_date').val();
+            var endDate = $('#end_date').val();
+            
+            var csvUrl = "{% url 'export_student_attendance_csv' %}?";
+            var pdfUrl = "{% url 'export_student_attendance_pdf' %}?";
+            
+            if (selectedCourses && selectedCourses.length > 0) {
+                csvUrl += "courses=" + selectedCourses.join(',') + "&";
+                pdfUrl += "courses=" + selectedCourses.join(',') + "&";
+            }
+            
+            if (startDate) {
+                csvUrl += "start_date=" + startDate + "&";
+                pdfUrl += "start_date=" + startDate + "&";
+            }
+            
+            if (endDate) {
+                csvUrl += "end_date=" + endDate;
+                pdfUrl += "end_date=" + endDate;
+            }
+            
+            $('#exportCsvBtn').attr('href', csvUrl);
+            $('#exportPdfBtn').attr('href', pdfUrl);
+        });
+    });
+</script>
+{% endblock %} 

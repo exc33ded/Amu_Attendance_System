@@ -1,0 +1,106 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+
+{% block title %}My Attendance Report{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">My Attendance Report</h5>
+        </div>
+        <div class="card-body">
+            <!-- Filter Form -->
+            <form method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="courses">Select Courses</label>
+                            <select name="courses" id="courses" class="form-control" multiple>
+                                <option value="all">All Courses</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}" {% if course.id|stringformat:"i" in selected_courses %}selected{% endif %}>
+                                    {{ course.name }} ({{ course.code }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple courses</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="start_date">Start Date</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="end_date">End Date</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a href="{% url 'student_attendance_report' %}" class="btn btn-secondary">Clear Filters</a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Export Buttons -->
+            <div class="mb-4">
+                <a href="{% url 'student_export_attendance_csv' %}?{% if selected_courses %}courses={{ selected_courses|join:',' }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}{% endif %}" class="btn btn-success">
+                    <i class="fas fa-file-csv"></i> Export as CSV
+                </a>
+                <a href="{% url 'student_export_attendance_pdf' %}?{% if selected_courses %}courses={{ selected_courses|join:',' }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}{% endif %}" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Export as PDF
+                </a>
+            </div>
+
+            <!-- Attendance Records Table -->
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_records %}
+                        <tr>
+                            <td>{{ record.date|date:"Y-m-d" }}</td>
+                            <td>{{ record.course.name }} ({{ record.course.code }})</td>
+                            <td>
+                                <span class="badge {% if record.status == 'Present' %}bg-success{% elif record.status == 'Absent' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ record.status }}
+                                </span>
+                            </td>
+                            <td>{{ record.remarks|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No attendance records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Initialize Select2 for multiple course selection -->
+<script>
+    $(document).ready(function() {
+        $('#courses').select2({
+            placeholder: "Select one or more courses",
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,50 @@
+{% extends "attendance/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Add New Program</h2>
+        <div>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">🏠 Admin Dashboard</a>
+            <a href="{% url 'manage_programs' %}" class="btn btn-secondary">📋 Program List</a>
+        </div>
+    </div>
+    <hr>
+
+    <!-- Success & Error Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-lg p-4">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="department" class="form-label">Select Department</label>
+                <select class="form-select" id="department" name="department" required>
+                    <option value="" selected disabled>-- Select Department --</option>
+                    {% for department in departments %}
+                        <option value="{{ department.id }}">{{ department.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="program_name" class="form-label">Program Name</label>
+                <input type="text" class="form-control" id="program_name" name="program_name" placeholder="Enter program name" required>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success">✅ Add Program</button>
+                <a href="{% url 'manage_programs' %}" class="btn btn-danger">❌ Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

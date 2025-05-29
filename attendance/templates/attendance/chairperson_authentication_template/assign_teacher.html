@@ -1,0 +1,292 @@
+{% extends 'attendance/chairperson_authentication_template/chairperson_base.html' %}
+{% load static %}
+
+{% block title %}Assign Teacher{% endblock %}
+
+{% block page_title %}Assign Teacher{% endblock %}
+
+{% block chairperson_content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #004c3f;">
+                    <h4 class="mb-0 text-white">Assign Teacher</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Please select the teacher, program, semester, and courses to assign a teacher.</p>
+
+                    {% if messages %}
+                    <div class="alert alert-info">
+                        {% for message in messages %}
+                        <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">Department</label>
+                                <input type="text" class="form-control" value="{{ department.name }}" readonly>
+                                <input type="hidden" name="department" value="{{ department.id }}">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="teacher" class="form-label">Teacher</label>
+                                <select class="form-select" id="teacher" name="teacher" required>
+                                    <option value="" selected disabled>Select Teacher</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a teacher.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="program" class="form-label">Program</label>
+                                <select class="form-select" id="program" name="program" required>
+                                    <option value="" selected disabled>Select Program</option>
+                                    {% for program in programs %}
+                                    <option value="{{ program.id }}">{{ program.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a program.
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="semester" class="form-label">Semester</label>
+                                <select class="form-select" id="semester" name="semester" required>
+                                    <option value="" selected disabled>Select Semester</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a semester.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="courses" class="form-label">Courses</label>
+                                <select class="form-select" id="courses" name="courses" multiple required>
+                                    <option value="" disabled>Select Courses</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select at least one course.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn" style="background-color: #004c3f; color: white;">Assign Teacher</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Assignments -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #004c3f;">
+                    <h4 class="mb-0 text-white">Current Assignments</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Teacher</th>
+                                    <th>Program</th>
+                                    <th>Semester</th>
+                                    <th>Courses</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in course_assignments %}
+                                <tr>
+                                    <td>{{ assignment.user.get_full_name }}</td>
+                                    <td>{{ assignment.program.name }}</td>
+                                    <td>{{ assignment.semester.name }}</td>
+                                    <td>
+                                        {% for course in assignment.course.all %}
+                                            {{ course.name }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'chairperson_edit_course_assignment' assignment.id %}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <a href="{% url 'chairperson_remove_course_assignment' assignment.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to remove this assignment?')">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No course assignments found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add jQuery and Select2 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2 for multiple course selection
+    $('#courses').select2({
+        placeholder: "Select one or more courses",
+        allowClear: true,
+        width: '100%'
+    });
+
+    // Get elements
+    const programSelect = $('#program');
+    const semesterSelect = $('#semester');
+    const coursesSelect = $('#courses');
+    const teacherSelect = $('#teacher');
+    const departmentId = document.querySelector('input[name="department"]').value;
+
+    // Load teachers for the department on page load
+    $.ajax({
+        url: "{% url 'get_teachers_by_department' %}",
+        data: { 'department_id': departmentId },
+        dataType: 'json',
+        success: function(data) {
+            teacherSelect.empty().append('<option value="" selected disabled>Select Teacher</option>');
+            if (data.teachers && data.teachers.length > 0) {
+                $.each(data.teachers, function(index, teacher) {
+                    teacherSelect.append($('<option>', {
+                        value: teacher.id,
+                        text: teacher.name + ' (' + teacher.teacher_code + ')'
+                    }));
+                });
+            } else {
+                teacherSelect.append('<option value="" disabled>No teachers found in this department</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading teachers:', error);
+            teacherSelect.empty().append('<option value="" selected disabled>Error loading teachers</option>');
+        }
+    });
+
+    // Program change handler
+    programSelect.change(function() {
+        const programId = $(this).val();
+        console.log('Program selected:', programId);
+        
+        // Reset dependent dropdowns
+        semesterSelect.empty().append('<option value="" selected disabled>Select Semester</option>');
+        coursesSelect.empty().append('<option value="" disabled>Select Courses</option>');
+        
+        // Disable dependent dropdowns
+        semesterSelect.prop('disabled', true);
+        coursesSelect.prop('disabled', true);
+        
+        if (programId) {
+            // Load semesters for the selected program
+            $.ajax({
+                url: "{% url 'get_semesters_by_program' %}",
+                data: { 'program_id': programId },
+                dataType: 'json',
+                success: function(data) {
+                    console.log('Semesters data:', data);
+                    if (data.semesters && data.semesters.length > 0) {
+                        $.each(data.semesters, function(index, semester) {
+                            semesterSelect.append($('<option>', {
+                                value: semester.id,
+                                text: semester.name
+                            }));
+                        });
+                        semesterSelect.prop('disabled', false);
+                    } else {
+                        semesterSelect.append('<option value="" disabled>No semesters available</option>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading semesters:', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
+                    semesterSelect.empty().append('<option value="" selected disabled>Error loading semesters</option>');
+                    semesterSelect.prop('disabled', true);
+                }
+            });
+        }
+    });
+
+    // Semester change handler
+    semesterSelect.change(function() {
+        const programId = programSelect.val();
+        const semesterId = $(this).val();
+        console.log('Semester selected:', semesterId);
+        
+        // Reset courses dropdown
+        coursesSelect.empty().append('<option value="" disabled>Select Courses</option>');
+        coursesSelect.prop('disabled', true);
+        
+        if (programId && semesterId) {
+            // Load courses for the selected program and semester
+            $.ajax({
+                url: "{% url 'get_courses' %}",
+                data: { 
+                    'semester_id': semesterId,
+                    'program_id': programId,
+                    'department_id': departmentId
+                },
+                dataType: 'json',
+                success: function(data) {
+                    console.log('Courses data:', data);
+                    if (data.courses && data.courses.length > 0) {
+                        $.each(data.courses, function(index, course) {
+                            coursesSelect.append($('<option>', {
+                                value: course.id,
+                                text: course.name
+                            }));
+                        });
+                        coursesSelect.prop('disabled', false);
+                        // Trigger Select2 to update
+                        coursesSelect.trigger('change');
+                    } else {
+                        coursesSelect.append('<option value="" disabled>No courses available</option>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading courses:', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
+                    coursesSelect.empty().append('<option value="" disabled>Error loading courses</option>');
+                    coursesSelect.prop('disabled', true);
+                }
+            });
+        }
+    });
+
+    // Initialize dropdowns if values are pre-selected
+    if (programSelect.val()) {
+        const event = new Event('change');
+        programSelect[0].dispatchEvent(event);
+    }
+});
+</script>
+{% endblock %} 
